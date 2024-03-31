@@ -7,14 +7,12 @@ const GameComponent: React.FC = () => {
 
   useEffect(() => {
     stompClient.current = new Client({
-      brokerURL: "ws://localhost:4000/ws", // Make sure this matches your server URL
+      brokerURL: "ws://localhost:4000/ws",
       onConnect: () => {
         setConnected(true);
-        // Subscribe to position updates
         stompClient.current?.subscribe("/topic/position", (message) => {
           const positionUpdate = JSON.parse(message.body);
           console.log("Position update received:", positionUpdate);
-          // Update player positions in your game view here
         });
       },
       onWebSocketError: (error: Event) => {
@@ -28,7 +26,6 @@ const GameComponent: React.FC = () => {
 
     stompClient.current.activate();
 
-    // Handle keyboard events for movement
     const handleKeyDown = (event: KeyboardEvent) => {
       console.log("handlekeydown: ", event.key);
       if (!stompClient.current) {
@@ -51,7 +48,7 @@ const GameComponent: React.FC = () => {
           direction = "EAST";
           break;
         default:
-          return; // Ignore other keys
+          return;
       }
 
       console.log("sending movement!");
