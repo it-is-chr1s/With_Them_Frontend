@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
+import GameCanvas from "./GameCanvas";
 
 const GameComponent: React.FC = () => {
   const [connected, setConnected] = useState<boolean>(false);
+  const [name, setName] = useState("");
   const stompClient = useRef<Client | null>(null);
+  const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
+    new Map()
+  );
 
   useEffect(() => {
     stompClient.current = new Client({
@@ -13,6 +18,12 @@ const GameComponent: React.FC = () => {
         stompClient.current?.subscribe("/topic/position", (message) => {
           const positionUpdate = JSON.parse(message.body);
           console.log("Position update received:", positionUpdate);
+          setPlayers((prevPlayers) =>
+            new Map(prevPlayers).set(
+              positionUpdate.playerId,
+              positionUpdate.position
+            )
+          );
         });
       },
       onWebSocketError: (error: Event) => {
@@ -51,11 +62,11 @@ const GameComponent: React.FC = () => {
           return;
       }
 
-      console.log("sending movement!");
+      console.log("sending movement!, player: ", name);
 
       stompClient.current.publish({
         destination: "/app/move",
-        body: JSON.stringify({ name: "01", direction }),
+        body: JSON.stringify({ name: name, direction }),
       });
     };
 
@@ -67,7 +78,7 @@ const GameComponent: React.FC = () => {
         stompClient.current.deactivate();
       }
     };
-  }, []);
+  }, [name]);
 
   return (
     <div className="container">
@@ -92,6 +103,16 @@ const GameComponent: React.FC = () => {
           Connect
         </button>
       )}
+
+      <input
+        type="text"
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Enter player name"
+      />
+
+      <div>
+        <GameCanvas players={players} />
+      </div>
     </div>
   );
 };
