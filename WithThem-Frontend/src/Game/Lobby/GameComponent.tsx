@@ -46,16 +46,16 @@ const GameComponent: React.FC = () => {
 
       let direction;
       switch (event.key) {
-        case "ArrowUp":
+        case "w":
           direction = "NORTH";
           break;
-        case "ArrowDown":
+        case "s":
           direction = "SOUTH";
           break;
-        case "ArrowLeft":
+        case "a":
           direction = "WEST";
           break;
-        case "ArrowRight":
+        case "d":
           direction = "EAST";
           break;
         default:
