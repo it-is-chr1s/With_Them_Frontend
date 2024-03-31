@@ -4,17 +4,15 @@ import React, { useState } from 'react';
 interface InputFormProps {
   inputPlaceholder: string;
   buttonText: string;
-  submitUrl: string;
+  onSubmit: () => void; // Function to handle form submission
 }
 
-const InputForm: React.FC<InputFormProps> = ({ inputPlaceholder, buttonText, submitUrl }) => {
+const InputForm: React.FC<InputFormProps> = ({ inputPlaceholder, buttonText, onSubmit }) => {
   const [roomId, setRoomId] = useState('');
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log('Room ID:', roomId);
-    // Redirect to the submitUrl
-    window.location.href = submitUrl;
+    event.preventDefault(); // Prevent default form submission behavior
+    onSubmit(); // Call the provided onSubmit function
   };
 
   return (

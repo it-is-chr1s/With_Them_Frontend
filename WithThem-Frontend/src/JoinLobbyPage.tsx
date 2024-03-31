@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import Layout from './components/Layout';
 import InputForm from './components/InputForm';
-import ButtonComponent from './components/ButtonComponent';
-import Popup from './components/Popup';
 import NameInputPopup from './components/NameInputPopup';
 
 const JoinLobbyPage = () => {
@@ -12,22 +10,17 @@ const JoinLobbyPage = () => {
       setIsOpen(!isOpen);
     };
     const handleJoin = () => {
-        // Mocking error scenarios
-        const random = Math.random();
-        if (random < 0.3) 
-        {
-          // Open the name pop-up if there are no errors
-          setIsOpen(true);
-        }
+        //Check if lobby exists, if it is not full and if the game is not on
+        togglePopup();
       };
 
   return (
     <Layout>
-      <h1 className="text-white text-6xl font-bold mb-8">Join Lobby</h1> {/* Header */}
+      <h1 className="text-white text-6xl font-bold mb-8">Join Lobby</h1>
       <InputForm 
         inputPlaceholder="Enter Lobby ID"
-        buttonText="Join"
-        onSubmit={handleJoin}
+        buttonText="Search"
+        onSubmit={togglePopup}
       />
     <NameInputPopup isOpen={isOpen} onClose={togglePopup}/>
     </Layout>
