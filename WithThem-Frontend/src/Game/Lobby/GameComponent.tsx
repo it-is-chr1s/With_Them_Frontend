@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import GameCanvas from "./GameCanvas";
+import PlayerControls from "./PlayerControls";
 
 const GameComponent: React.FC = () => {
   const [connected, setConnected] = useState<boolean>(false);
@@ -51,44 +52,53 @@ const GameComponent: React.FC = () => {
 
     stompClient.current.activate();
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!stompClient.current) {
-        return;
-      }
+    // const handleKeyDown = (event: KeyboardEvent) => {
+    //   if (!stompClient.current) {
+    //     return;
+    //   }
 
-      let direction;
-      switch (event.key) {
-        case "w":
-          direction = "NORTH";
-          break;
-        case "s":
-          direction = "SOUTH";
-          break;
-        case "a":
-          direction = "WEST";
-          break;
-        case "d":
-          direction = "EAST";
-          break;
-        default:
-          return;
-      }
+    //   let direction;
+    //   switch (event.key) {
+    //     case "w":
+    //       direction = "NORTH";
+    //       break;
+    //     case "s":
+    //       direction = "SOUTH";
+    //       break;
+    //     case "a":
+    //       direction = "WEST";
+    //       break;
+    //     case "d":
+    //       direction = "EAST";
+    //       break;
+    //     default:
+    //       return;
+    //   }
 
+    //   stompClient.current.publish({
+    //     destination: "/app/move",
+    //     body: JSON.stringify({ name: name, direction }),
+    //   });
+    // };
+
+    // document.addEventListener("keydown", handleKeyDown);
+
+    // return () => {
+    //   document.removeEventListener("keydown", handleKeyDown);
+    //   if (stompClient.current) {
+    //     stompClient.current.deactivate();
+    //   }
+    // };
+  }, [name]);
+
+  const handleMove = (direction: string) => {
+    if (stompClient.current) {
       stompClient.current.publish({
         destination: "/app/move",
-        body: JSON.stringify({ name: name, direction }),
+        body: JSON.stringify({ name, direction }),
       });
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      if (stompClient.current) {
-        stompClient.current.deactivate();
-      }
-    };
-  }, [name]);
+    }
+  };
 
   return (
     <div className="container">
@@ -121,6 +131,7 @@ const GameComponent: React.FC = () => {
       />
 
       <div>
+        <PlayerControls onMove={handleMove} />
         <GameCanvas players={players} walls={walls} />
       </div>
     </div>

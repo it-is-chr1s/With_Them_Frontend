@@ -31,8 +31,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls }) => {
       context.fillStyle = "black";
       walls.forEach((wall) => {
         context.fillRect(
-          wall.x * cellSize + cellSize / 4,
-          wall.y * cellSize + cellSize / 4,
+          wall.x * cellSize + cellSize / 2,
+          wall.y * cellSize + cellSize / 2,
           cellSize,
           cellSize
         );
