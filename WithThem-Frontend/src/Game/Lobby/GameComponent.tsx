@@ -41,6 +41,9 @@ const GameComponent: React.FC = () => {
           body: "{}",
         });
       },
+      onDisconnect: () => {
+        setConnected(false);
+      },
       onWebSocketError: (error: Event) => {
         console.error("Error with websocket", error);
       },
@@ -89,10 +92,15 @@ const GameComponent: React.FC = () => {
     //     stompClient.current.deactivate();
     //   }
     // };
+    return () => {
+      if (stompClient.current) {
+        stompClient.current.deactivate();
+      }
+    };
   }, [name]);
 
   const handleMove = (direction: string) => {
-    if (stompClient.current) {
+    if (connected && stompClient.current) {
       stompClient.current.publish({
         destination: "/app/move",
         body: JSON.stringify({ name, direction }),
