@@ -9,21 +9,35 @@ const GameComponent: React.FC = () => {
   const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
     new Map()
   );
+  const [walls, setWalls] = useState([]);
 
   useEffect(() => {
     stompClient.current = new Client({
       brokerURL: "ws://localhost:4000/ws",
       onConnect: () => {
         setConnected(true);
+
+        stompClient.current?.subscribe("/topic/mapLayout", (message) => {
+          const wallPositions = JSON.parse(message.body);
+
+          console.log("got wall positions: ", wallPositions);
+          setWalls(wallPositions);
+        });
+
         stompClient.current?.subscribe("/topic/position", (message) => {
           const positionUpdate = JSON.parse(message.body);
-          console.log("Position update received:", positionUpdate);
+          console.log("Position update received:", positionUpdate.position);
           setPlayers((prevPlayers) =>
             new Map(prevPlayers).set(
               positionUpdate.playerId,
               positionUpdate.position
             )
           );
+        });
+
+        stompClient.current?.publish({
+          destination: "/app/requestMap",
+          body: "{}",
         });
       },
       onWebSocketError: (error: Event) => {
@@ -38,11 +52,9 @@ const GameComponent: React.FC = () => {
     stompClient.current.activate();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log("handlekeydown: ", event.key);
       if (!stompClient.current) {
         return;
       }
-      console.log(stompClient.current);
 
       let direction;
       switch (event.key) {
@@ -61,8 +73,6 @@ const GameComponent: React.FC = () => {
         default:
           return;
       }
-
-      console.log("sending movement!, player: ", name);
 
       stompClient.current.publish({
         destination: "/app/move",
@@ -111,7 +121,7 @@ const GameComponent: React.FC = () => {
       />
 
       <div>
-        <GameCanvas players={players} />
+        <GameCanvas players={players} walls={walls} />
       </div>
     </div>
   );
