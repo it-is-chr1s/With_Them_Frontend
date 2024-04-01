@@ -11,6 +11,8 @@ const GameComponent: React.FC = () => {
     new Map()
   );
   const [walls, setWalls] = useState([]);
+  const [mapHeight, setMapHeight] = useState(0);
+  const [mapWidth, setMapWidth] = useState(0);
 
   useEffect(() => {
     stompClient.current = new Client({
@@ -19,10 +21,11 @@ const GameComponent: React.FC = () => {
         setConnected(true);
 
         stompClient.current?.subscribe("/topic/mapLayout", (message) => {
-          const wallPositions = JSON.parse(message.body);
+          const mapDetails = JSON.parse(message.body);
 
-          console.log("got wall positions: ", wallPositions);
-          setWalls(wallPositions);
+          setWalls(mapDetails.wallPositions);
+          setMapHeight(mapDetails.height);
+          setMapWidth(mapDetails.width);
         });
 
         stompClient.current?.subscribe("/topic/position", (message) => {
@@ -140,7 +143,13 @@ const GameComponent: React.FC = () => {
 
       <div>
         <PlayerControls onMove={handleMove} />
-        <GameCanvas players={players} walls={walls} name={name} />
+        <GameCanvas
+          players={players}
+          height={mapHeight}
+          width={mapWidth}
+          walls={walls}
+          name={name}
+        />
       </div>
     </div>
   );

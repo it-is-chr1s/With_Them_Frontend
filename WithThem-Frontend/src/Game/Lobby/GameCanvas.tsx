@@ -13,12 +13,21 @@ interface WallPosition {
 interface GameCanvasProps {
   players: Map<string, PlayerPosition>;
   walls: WallPosition[];
+  height: number;
+  width: number;
   name: string;
 }
 
 const cellSize = 30;
-const gridSize = 20;
-const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls, name }) => {
+const cavnasHeight = 9 * 3;
+const cavnasWidth = 16 * 3;
+const GameCanvas: React.FC<GameCanvasProps> = ({
+  players,
+  walls,
+  name,
+  height,
+  width,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawGame = () => {
@@ -37,6 +46,22 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls, name }) => {
 
       // center camera on player position
       context.translate(centerX / 1 - playerX, centerY / 1 - playerY);
+
+      // draw map borders
+      context.fillStyle = "#000";
+      for (let x = 0; x <= width; x++) {
+        context.fillRect(
+          x * cellSize - cellSize,
+          -cellSize,
+          cellSize + cellSize,
+          cellSize
+        );
+        context.fillRect(x * cellSize, height * cellSize, cellSize, cellSize);
+      }
+      for (let y = 0; y <= height; y++) {
+        context.fillRect(-cellSize, y * cellSize, cellSize, cellSize);
+        context.fillRect(width * cellSize, y * cellSize, cellSize, cellSize);
+      }
 
       // Draw walls
       context.fillStyle = "black";
@@ -79,8 +104,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls, name }) => {
   return (
     <canvas
       ref={canvasRef}
-      width={gridSize * cellSize}
-      height={gridSize * cellSize}
+      width={cavnasWidth * cellSize}
+      height={cavnasHeight * cellSize}
       style={{ border: "1px solid #000" }}
     ></canvas>
   );
