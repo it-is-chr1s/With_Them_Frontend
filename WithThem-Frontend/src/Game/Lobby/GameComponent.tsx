@@ -132,7 +132,7 @@ const GameComponent: React.FC = () => {
 
       <div>
         <PlayerControls onMove={handleMove} />
-        <GameCanvas players={players} walls={walls} />
+        <GameCanvas players={players} walls={walls} name={name} />
       </div>
     </div>
   );

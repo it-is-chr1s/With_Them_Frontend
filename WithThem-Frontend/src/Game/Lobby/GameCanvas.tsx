@@ -13,21 +13,32 @@ interface WallPosition {
 interface GameCanvasProps {
   players: Map<string, PlayerPosition>;
   walls: WallPosition[];
+  name: string;
 }
 
 const cellSize = 30;
 const gridSize = 20;
-
-const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls }) => {
+const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls, name }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawGame = () => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
+    const currentPlayerPosition = players.get(name);
 
-    if (context && canvas) {
+    if (context && canvas && currentPlayerPosition) {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const playerX = currentPlayerPosition.x * cellSize;
+      const playerY = currentPlayerPosition.y * cellSize;
+
       context.clearRect(0, 0, canvas.width, canvas.height);
+      context.save();
 
+      // center camera on player position
+      context.translate(centerX / 1 - playerX, centerY / 1 - playerY);
+
+      // Draw walls
       context.fillStyle = "black";
       walls.forEach((wall) => {
         context.fillRect(
@@ -38,6 +49,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls }) => {
         );
       });
 
+      // Draw players
       players.forEach((position, playerId) => {
         context.fillStyle = "red";
         context.beginPath();
@@ -55,12 +67,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ players, walls }) => {
         );
         context.fill();
       });
+
+      context.restore();
     }
   };
 
   useEffect(() => {
     drawGame();
-  }, [players]);
+  }, [players, walls, name]);
 
   return (
     <canvas

@@ -31,9 +31,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ onMove }) => {
 
   useEffect(() => {
     const direction = determineDirection(Array.from(pressedKeys));
-    if (direction) {
-      onMove(direction);
-    }
+    onMove(direction || "NONE");
   }, [pressedKeys, onMove]);
 
   return null;
