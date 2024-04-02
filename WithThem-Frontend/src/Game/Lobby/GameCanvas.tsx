@@ -21,6 +21,7 @@ interface GameCanvasProps {
 const cellSize = 30;
 const cavnasHeight = 9 * 3;
 const cavnasWidth = 16 * 3;
+
 const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
   walls,
@@ -36,6 +37,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
     const currentPlayerPosition = players.get(name);
 
     if (context && canvas && currentPlayerPosition) {
+      const zoomLevel = 2;
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const playerX = currentPlayerPosition.x * cellSize;
@@ -44,10 +46,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.save();
 
-      // center camera on player position
-      context.translate(centerX / 1 - playerX, centerY / 1 - playerY);
+      // Apply zoom
+      context.scale(zoomLevel, zoomLevel);
 
-      // draw map borders
+      context.translate(
+        centerX / zoomLevel - playerX,
+        centerY / zoomLevel - playerY
+      );
+
+      // Draw map borders
       context.fillStyle = "#000";
       for (let x = 0; x <= width; x++) {
         context.fillRect(
@@ -76,7 +83,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw players
       players.forEach((position, playerId) => {
-        context.fillStyle = "red";
+        context.fillStyle = "green";
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
@@ -104,8 +111,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      width={cavnasWidth * cellSize}
-      height={cavnasHeight * cellSize}
+      width={cavnasWidth * cellSize} // These might need to be adjusted based on zoom level
+      height={cavnasHeight * cellSize} // These might need to be adjusted based on zoom level
       style={{ border: "1px solid #000" }}
     ></canvas>
   );
