@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import ButtonComponent from "../components/ButtonComponent";
 import Layout from "../components/Layout";
-import Popup from "../components/Popup";
-import InputForm from "../components/InputForm";
+import NameInputPopup from "../components/NameInputPopup";
 
 const MenuPage = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,14 +26,8 @@ const MenuPage = () => {
           label="Join Lobby"
         />
         <ButtonComponent onClick={togglePopup} label="Create New Lobby" />
-        <Popup isOpen={isOpen} onClose={togglePopup}>
-          <h1 className="text-black text-3xl mb-8">Choose Username</h1>
-          <InputForm
-            inputPlaceholder="Enter username"
-            buttonText="Join"
-            onSubmit={handleJoin}
-          />
-        </Popup>
+        <NameInputPopup isOpen={isOpen} onClose={togglePopup} />
+        
       </div>
     </Layout>
   );
