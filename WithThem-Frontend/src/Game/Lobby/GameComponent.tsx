@@ -7,7 +7,7 @@ import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 
 const GameComponent: React.FC = () => {
-  const [selectedColor, setSelectedColor] = useState<string>('gray'); // State to store selected color
+  const [selectedColor, setSelectedColor] = useState<string>("gray");
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -16,8 +16,8 @@ const GameComponent: React.FC = () => {
   };
 
   const [connected, setConnected] = useState<boolean>(false);
-  const location=useLocation();
-  const username=location.state?.username;
+  const location = useLocation();
+  const username = location.state?.username;
   const [name] = useState(username);
   const stompClient = useRef<Client | null>(null);
   const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
@@ -125,9 +125,9 @@ const GameComponent: React.FC = () => {
   };
 
   const handleColorSelect = (color: string) => {
-    setSelectedColor(color); // Update selected color in state
-    setIsOpen(false); // Close the color picker popup
-};
+    setSelectedColor(color);
+    setIsOpen(false);
+  };
   return (
     <div className="container">
       {connected ? (
@@ -152,23 +152,26 @@ const GameComponent: React.FC = () => {
         </button>
       )}
 
-            <div>
-                <PlayerControls onMove={handleMove} />
-                <GameCanvas
-                    players={players}
-                    height={mapHeight}
-                    width={mapWidth}
-                    walls={walls}
-                    name={name}
-                    selectedColor={selectedColor} // Pass selected color to GameCanvas
-                />
-            </div>
-            <div className="flex justify-end">
-                <ButtonComponent onClick={togglePopup} label="Choose color" />
-                <ChooseColorPopup isOpen={isOpen} onClose={togglePopup} onColorSelect={handleColorSelect} /> 
-            </div>
-        </div>
-    
+      <div>
+        <PlayerControls onMove={handleMove} />
+        <GameCanvas
+          players={players}
+          height={mapHeight}
+          width={mapWidth}
+          walls={walls}
+          name={name}
+          selectedColor={selectedColor}
+        />
+      </div>
+      <div className="flex justify-end">
+        <ButtonComponent onClick={togglePopup} label="Choose color" />
+        <ChooseColorPopup
+          isOpen={isOpen}
+          onClose={togglePopup}
+          onColorSelect={handleColorSelect}
+        />
+      </div>
+    </div>
   );
 };
 
