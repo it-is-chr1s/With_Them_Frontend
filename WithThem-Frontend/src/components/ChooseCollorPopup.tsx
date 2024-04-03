@@ -1,22 +1,25 @@
+// ChooseColorPopup.tsx
 import React, { useState } from 'react';
 import Popup from './Popup';
 
 interface ChooseColorPopupProps {
     isOpen: boolean;
     onClose: () => void;
+    onColorSelect: (color: string) => void; // New prop to pass selected color
 }
 
-const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose }) => {
+const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose, onColorSelect }) => {
     const colors = ['#ff0000', '#994C00', '#ff8000', '#ffff00', '#80ff00', '#1FA61A', '#00ffff', '#0080ff', '#0000ff', '#8000ff', '#ff0080', '#ff8080'];
-    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string>('gray');
 
     const handleColorClick = (color: string) => {
         setSelectedColor(color);
+        onColorSelect(color); // Pass selected color to parent component
+        onClose();
     };
 
     const handleClose = () => {
         onClose();
-        setSelectedColor(null);
     };
 
     return (

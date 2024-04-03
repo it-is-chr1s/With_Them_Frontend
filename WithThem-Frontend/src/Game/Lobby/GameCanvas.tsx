@@ -1,3 +1,4 @@
+// GameCanvas.tsx
 import React, { useRef, useEffect } from "react";
 
 interface PlayerPosition {
@@ -16,6 +17,7 @@ interface GameCanvasProps {
   height: number;
   width: number;
   name: string;
+  selectedColor: string; // New prop for selected color
 }
 
 const cellSize = 30;
@@ -26,6 +28,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
   walls,
   name,
+  selectedColor, // Receive selected color as a prop
   height,
   width,
 }) => {
@@ -83,7 +86,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw players
       players.forEach((position, playerId) => {
-        context.fillStyle = "green";
+        context.fillStyle = selectedColor; // Use selected color
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
@@ -106,13 +109,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   useEffect(() => {
     drawGame();
-  }, [players, walls, name]);
+  }, [players, walls, name, selectedColor]); // Update when selected color changes
 
   return (
     <canvas
       ref={canvasRef}
-      width={cavnasWidth * cellSize} // These might need to be adjusted based on zoom level
-      height={cavnasHeight * cellSize} // These might need to be adjusted based on zoom level
+      width={cavnasWidth * cellSize}
+      height={cavnasHeight * cellSize}
       style={{ border: "1px solid #000" }}
     ></canvas>
   );
