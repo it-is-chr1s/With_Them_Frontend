@@ -2,10 +2,9 @@ import React from "react";
 import GameComponent from "./GameComponent";
 
 const Lobby = () => {
-
   return (
-    <div>
-      <GameComponent/>
+    <div className="flex flex-col items-center">
+      <GameComponent />
     </div>
   );
 };
