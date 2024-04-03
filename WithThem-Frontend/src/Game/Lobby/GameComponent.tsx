@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import GameCanvas from "./GameCanvas";
 import PlayerControls from "./PlayerControls";
+import { useLocation } from "react-router-dom";
 
 const GameComponent: React.FC = () => {
   const [connected, setConnected] = useState<boolean>(false);
-  const [name, setName] = useState("");
+  const location=useLocation();
+  const username=location.state?.username;
+  const [name, setName] = useState(username);
   const stompClient = useRef<Client | null>(null);
   const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
     new Map()
@@ -134,12 +137,6 @@ const GameComponent: React.FC = () => {
           Connect
         </button>
       )}
-
-      <input
-        type="text"
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter player name"
-      />
 
       <div>
         <PlayerControls onMove={handleMove} />

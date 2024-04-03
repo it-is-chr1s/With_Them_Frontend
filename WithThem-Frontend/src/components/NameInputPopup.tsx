@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Popup from './Popup';
 import InputForm from './InputForm';
+import { useNavigate } from 'react-router-dom';
 
 interface NameInputPopupProps {
     isOpen: boolean;
@@ -8,12 +9,14 @@ interface NameInputPopupProps {
 }
 
 const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose }) => {
-    const onSubmit=(/*username*/)=>{
-        
-    }
-    const handleJoin = (/*username: string*/) => {
-        onSubmit(/*username*/);
-        onClose();
+    const [username, setUsername] = useState("");
+
+    const navigate=useNavigate();
+    const handleJoin = (): void => {
+        if (username.trim() !== "") {
+            onClose();
+           navigate ( '/lobby',{state:{username}});
+        }
     };
 
     return (
@@ -22,6 +25,8 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose }) => {
             <InputForm 
                 inputPlaceholder="Enter username"
                 buttonText="Join"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 onSubmit={handleJoin}
             />
         </Popup>
