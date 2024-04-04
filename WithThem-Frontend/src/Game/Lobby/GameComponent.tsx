@@ -5,6 +5,7 @@ import PlayerControls from "./PlayerControls";
 import { useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
+import InGameButton from "./InGameButton";
 
 const GameComponent: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>("gray");
@@ -23,6 +24,7 @@ const GameComponent: React.FC = () => {
   const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
     new Map()
   );
+  const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [walls, setWalls] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [mapHeight, setMapHeight] = useState(0);
@@ -53,6 +55,10 @@ const GameComponent: React.FC = () => {
             )
           );
         });
+
+        stompClient.current?.subscribe("/topic/player/" + name + "/controlsEnabled/task", (message) => {
+          setUseEnabled(message.body === "true");
+        })
 
         stompClient.current?.publish({
           destination: "/app/requestMap",
@@ -126,6 +132,9 @@ const GameComponent: React.FC = () => {
     }
   };
 
+  const use = () => {
+  };
+
   const handleColorSelect = (color: string) => {
     setSelectedColor(color);
     setIsOpen(false);
@@ -165,7 +174,9 @@ const GameComponent: React.FC = () => {
           name={name}
           selectedColor={selectedColor}
         />
+        <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
+      
       <div className="flex justify-end">
         <ButtonComponent onClick={togglePopup} label="Choose color" />
         <ChooseColorPopup
