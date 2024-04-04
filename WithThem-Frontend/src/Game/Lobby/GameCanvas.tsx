@@ -11,9 +11,16 @@ interface WallPosition {
   y: number;
 }
 
+interface TaskPosition {
+  x: number;
+  y: number;
+  taskType: string
+}
+
 interface GameCanvasProps {
   players: Map<string, PlayerPosition>;
   walls: WallPosition[];
+  tasks: TaskPosition[];
   height: number;
   width: number;
   name: string;
@@ -27,6 +34,7 @@ const cavnasWidth = 16 * 3;
 const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
   walls,
+  tasks,
   name,
   selectedColor, // Receive selected color as a prop
   height,
@@ -84,6 +92,37 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         );
       });
 
+      // Draw tasks
+      tasks.forEach((task) => {
+        context.fillStyle = "red";
+        context.fillRect(
+          task.x * cellSize + cellSize / 2,
+          task.y * cellSize + cellSize / 2,
+          cellSize,
+          cellSize
+        );
+        context.fillStyle = "black";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const fontSize = 6;
+        context.font = '6px Arial';
+        const textX = (task.x + 1) * cellSize;
+        const textY = (task.y + 1.1) * cellSize;
+
+        const lines = task.taskType.split(' ');
+
+        const lineHeight = fontSize * 1.2;
+        const totalHeight = lines.length * lineHeight;
+
+        let adjustedTextY = textY - totalHeight / 2;
+
+        lines.forEach((line, index) => {
+            const lineY = adjustedTextY + index * lineHeight;
+            context.fillText(line, textX, lineY);
+        });
+        
+      });
+
       // Draw players
       players.forEach((position, playerId) => {
         context.fillStyle = selectedColor; // Use selected color
@@ -95,9 +134,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           0,
           2 * Math.PI
         );
+        context.font = '8px Arial';
         context.fillText(
           playerId,
-          position.x * cellSize,
+          (position.x + 0.5) * cellSize,
           position.y * cellSize - 5
         );
         context.fill();

@@ -24,6 +24,7 @@ const GameComponent: React.FC = () => {
     new Map()
   );
   const [walls, setWalls] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [mapHeight, setMapHeight] = useState(0);
   const [mapWidth, setMapWidth] = useState(0);
 
@@ -37,6 +38,7 @@ const GameComponent: React.FC = () => {
           const mapDetails = JSON.parse(message.body);
 
           setWalls(mapDetails.wallPositions);
+          setTasks(mapDetails.taskPositions);
           setMapHeight(mapDetails.height);
           setMapWidth(mapDetails.width);
         });
@@ -159,6 +161,7 @@ const GameComponent: React.FC = () => {
           height={mapHeight}
           width={mapWidth}
           walls={walls}
+          tasks={tasks}
           name={name}
           selectedColor={selectedColor}
         />
