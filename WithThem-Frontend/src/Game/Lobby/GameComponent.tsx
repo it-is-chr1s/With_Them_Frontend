@@ -6,7 +6,8 @@ import { useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "./InGameButton";
-import TaskPopup from "./TaskPopup";
+import Popup from "../../components/Popup";
+import ConnectingWires from "./ConnectingWires";
 
 const GameComponent: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>("gray");
@@ -222,7 +223,9 @@ const GameComponent: React.FC = () => {
           name={name}
           selectedColor={selectedColor}
         />
-        <TaskPopup visible={false} task="Connecting Wires"/>
+        {//<TaskPopup visible={true} task="Connecting Wires"/>
+        }
+        <Popup isOpen={true} onClose={() => {}}><ConnectingWires /></Popup> 
         <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
       
