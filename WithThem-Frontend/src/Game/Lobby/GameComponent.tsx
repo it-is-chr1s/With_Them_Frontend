@@ -225,7 +225,10 @@ const GameComponent: React.FC = () => {
         />
         {//<TaskPopup visible={true} task="Connecting Wires"/>
         }
-        <Popup isOpen={true} onClose={() => {}}><ConnectingWires /></Popup> 
+        <Popup isOpen={true} onClose={() => {}}>
+          <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>
+          <ConnectingWires />
+          </Popup> 
         <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
       

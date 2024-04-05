@@ -2,24 +2,26 @@ import ConnectingWiresButton from "./ConnectingWiresButton";
 import React, { useEffect } from 'react';
 
 const ConnectingWires: React.FC = () => {
+    const colour = ['red', 'blue', 'green', 'orange'];
+    const lines = [[0, 3], [1, 2], [2, 1], [3, 0]];
+    const buttons = [[0, 3], [1, 2], [2, 1], [3, 0]];
+
     useEffect(() => {
-        const lines = [[0, 3], [1, 2], [2, 1], [3, 0]];
 
         const canvas = document.getElementById('connectingWires') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
 
         if (ctx) {
-            ctx.strokeStyle = 'red';
             ctx.lineWidth = 10;
 
             const start_x = 0;
-            const start_y = 10;
-            const button_distance = 37.25;
-            const offset = 30;
-
-            
+            const start_y = 10.5;
+            const button_distance = 41.75;
+            const offset = 50;
+                       
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             lines.forEach((line) => {
+                ctx.strokeStyle = colour[line[0]];
                 ctx.beginPath();
                 ctx.moveTo(start_x, start_y + line[0] * button_distance);
                 ctx.lineTo(start_x + offset, start_y + line[0] * button_distance);
@@ -31,19 +33,21 @@ const ConnectingWires: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex">
-            <div className="flex flex-col justify-between">
-                <ConnectingWiresButton wire={0} />
-                <ConnectingWiresButton wire={1} />
-                <ConnectingWiresButton wire={2} />
-                <ConnectingWiresButton wire={3} />
+        <div className="flex h-72 w-96">
+            <div id="leftButtons" className="flex flex-col justify-between absolute left-7">
+                {
+                    buttons.map((button) => (
+                        <ConnectingWiresButton wire={colour[button[0]]}/>
+                    ))
+                }
             </div>
-            <canvas id="connectingWires"></canvas>
-            <div className="flex flex-col justify-between">
-                <ConnectingWiresButton wire={0} />
-                <ConnectingWiresButton wire={1} />
-                <ConnectingWiresButton wire={2} />
-                <ConnectingWiresButton wire={3} />
+            <canvas id="connectingWires" className="z-0"></canvas>
+            <div id="rightButtons" className="flex flex-col justify-between absolute right-7">
+                {
+                    buttons.map((button) => (
+                        <ConnectingWiresButton wire={colour[button[1]]}/>
+                    ))
+                }
             </div>
         </div>
     );
