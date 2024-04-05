@@ -14,13 +14,19 @@ interface WallPosition {
 interface TaskPosition {
   x: number;
   y: number;
-  taskType: string
+  taskType: string;
+  id: number;
+}
+
+interface StateOfTasks {
+  [id: number]: string;
 }
 
 interface GameCanvasProps {
   players: Map<string, PlayerPosition>;
   walls: WallPosition[];
   tasks: TaskPosition[];
+  stateOfTasks: StateOfTasks;
   height: number;
   width: number;
   name: string;
@@ -35,6 +41,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
   walls,
   tasks,
+  stateOfTasks,
   name,
   selectedColor, // Receive selected color as a prop
   height,
@@ -94,7 +101,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw tasks
       tasks.forEach((task) => {
-        context.fillStyle = "red";
+        if(task.id in stateOfTasks){
+          if(stateOfTasks[task.id] === "available"){
+            context.fillStyle = "red";
+          }else if(stateOfTasks[task.id] === "active"){
+            context.fillStyle = "rgb(255, 109, 31)";
+          }
+        }else{
+          context.fillStyle = "rgb(31, 255, 42)";
+        }
         context.fillRect(
           task.x * cellSize + cellSize / 2,
           task.y * cellSize + cellSize / 2,
