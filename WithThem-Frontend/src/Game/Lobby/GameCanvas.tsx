@@ -30,7 +30,7 @@ interface GameCanvasProps {
   height: number;
   width: number;
   name: string;
-  selectedColor: string; // New prop for selected color
+  selectedColor: string;
 }
 
 const cellSize = 30;
@@ -43,7 +43,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   tasks,
   stateOfTasks,
   name,
-  selectedColor, // Receive selected color as a prop
+  selectedColor,
   height,
   width,
 }) => {
@@ -140,7 +140,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw players
       players.forEach((position, playerId) => {
-        context.fillStyle = selectedColor; // Use selected color
+        context.fillStyle = selectedColor;
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
@@ -164,7 +164,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   useEffect(() => {
     drawGame();
-  }, [players, walls, name, selectedColor]); // Update when selected color changes
+  }, [players, walls, name, selectedColor]);
 
   return (
     <canvas
