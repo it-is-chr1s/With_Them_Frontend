@@ -44,12 +44,15 @@ const GameComponent: React.FC = () => {
         console.log("Connected to tasks websocket");
         stompClientTasks.current?.subscribe("/topic/tasks/stateOfTasks", (message) => {
           setStateOfTasks(JSON.parse(message.body));
-          //setAvailableTasks(availableTasksWithOverhead.map((obj: any) => obj.id));
+          console.log(message.body);
         })
 
         stompClientTasks.current?.subscribe("/topic/tasks/currentTask/" + name, (message) => {
-          setCurrentTask(JSON.parse(message.body));
-          console.log("Current task: ", message.body);
+          if(message.body === ""){
+            setCurrentTask(null)
+          }else{
+            setCurrentTask(JSON.parse(message.body));
+          }
         })
 
         stompClientTasks.current?.publish({
@@ -187,6 +190,14 @@ const GameComponent: React.FC = () => {
     setSelectedColor(color);
     setIsOpen(false);
   };
+
+  const cancelTask = () => {
+    stompClientTasks.current?.publish({
+      destination: "/app/tasks/cancelTask",
+      body: JSON.stringify({ lobby: lobbyId, id: currentTask?.id, player: name }),
+    });
+  }
+
   return (
     <div className="container">
       {connected ? (
@@ -223,11 +234,9 @@ const GameComponent: React.FC = () => {
           name={name}
           selectedColor={selectedColor}
         />
-        {//<TaskPopup visible={true} task="Connecting Wires"/>
-        }
-        <Popup isOpen={true} onClose={() => {}}>
+        <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {cancelTask()}}>
           <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>
-          <ConnectingWires />
+          <ConnectingWires plugs={currentTask?.plugs} wires={currentTask?.wires} stompClient={stompClientTasks} lobbyId={lobbyId} name={name}/>
           </Popup> 
         <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
