@@ -28,6 +28,7 @@ const GameComponent: React.FC = () => {
     new Map()
   );
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
+  const [onTaskField, setOnTaskField] = useState<boolean>(false);
   const [walls, setWalls] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [stateOfTasks, setStateOfTasks] = useState([]);
@@ -44,7 +45,6 @@ const GameComponent: React.FC = () => {
         console.log("Connected to tasks websocket");
         stompClientTasks.current?.subscribe("/topic/tasks/stateOfTasks", (message) => {
           setStateOfTasks(JSON.parse(message.body));
-          console.log(message.body);
         })
 
         stompClientTasks.current?.subscribe("/topic/tasks/currentTask/" + name, (message) => {
@@ -99,7 +99,7 @@ const GameComponent: React.FC = () => {
         });
 
         stompClientMap.current?.subscribe("/topic/player/" + name + "/controlsEnabled/task", (message) => {
-          setUseEnabled(message.body === "true");
+          setOnTaskField(message.body === "true");
         });
 
         stompClientMap.current?.publish({
@@ -179,7 +179,6 @@ const GameComponent: React.FC = () => {
 
   const use = () => {
     const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
-    console.log("Task: ", task)
     stompClientTasks.current?.publish({
       destination: "/app/tasks/startTask",
       body: JSON.stringify({ lobby: lobbyId, id: task.id, player: name }),
@@ -191,9 +190,26 @@ const GameComponent: React.FC = () => {
     setIsOpen(false);
   };
 
-  const cancelTask = () => {
+  useEffect(() => {
+    if(players.get(name) != undefined){
+      console.log(players.get(name));
+      
+      const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
+          if(task != null && task.id in stateOfTasks){
+            if(stateOfTasks[task.id] === "available"){
+              setUseEnabled(onTaskField);
+            }else if(stateOfTasks[task.id] === "active"){
+              setUseEnabled(false)
+            }
+          }else{
+            setUseEnabled(false);
+          }
+    }
+  }, [onTaskField])
+
+  const closeTask = () => {
     stompClientTasks.current?.publish({
-      destination: "/app/tasks/cancelTask",
+      destination: "/app/tasks/closeTask",
       body: JSON.stringify({ lobby: lobbyId, id: currentTask?.id, player: name }),
     });
   }
@@ -234,7 +250,7 @@ const GameComponent: React.FC = () => {
           name={name}
           selectedColor={selectedColor}
         />
-        <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {cancelTask()}}>
+        <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {closeTask()}}>
           <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>
           <ConnectingWires plugs={currentTask?.plugs} wires={currentTask?.wires} stompClient={stompClientTasks} lobbyId={lobbyId} name={name}/>
           </Popup> 
