@@ -10,8 +10,6 @@ import Popup from "../../components/Popup";
 import ConnectingWires from "./ConnectingWires";
 
 const GameComponent: React.FC = () => {
-  const [selectedColor, setSelectedColor] = useState<string>("gray");
-
   const [isOpen, setIsOpen] = useState(false);
 
   const togglePopup = () => {
@@ -24,7 +22,7 @@ const GameComponent: React.FC = () => {
   const [name] = useState(username);
   const stompClientMap = useRef<Client | null>(null);
   const stompClientTasks = useRef<Client | null>(null)
-  const [players, setPlayers] = useState<Map<string, { x: number; y: number }>>(
+  const [players, setPlayers] = useState<Map<string, { x: number; y: number, color:string}>>(
     new Map()
   );
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
@@ -89,15 +87,16 @@ const GameComponent: React.FC = () => {
 
         stompClientMap.current?.subscribe("/topic/position", (message) => {
           const positionUpdate = JSON.parse(message.body);
-          //console.log("Position update received:", positionUpdate.position);
+          //console.log("Position update received:", positionUpdate);
           setPlayers((prevPlayers) =>
             new Map(prevPlayers).set(
               positionUpdate.playerId,
-              positionUpdate.position
+              { x: positionUpdate.position.x, y: positionUpdate.position.y, color: positionUpdate._color }
             )
           );
         });
 
+        
         stompClientMap.current?.subscribe("/topic/player/" + name + "/controlsEnabled/task", (message) => {
           setOnTaskField(message.body === "true");
         });
@@ -186,7 +185,12 @@ const GameComponent: React.FC = () => {
   };
 
   const handleColorSelect = (color: string) => {
-    setSelectedColor(color);
+    if (connected && stompClientMap.current) {
+      stompClientMap.current.publish({
+        destination: "/app/changeColor",
+        body: JSON.stringify({ name ,color }),
+      });
+    }
     setIsOpen(false);
   };
 
@@ -248,7 +252,6 @@ const GameComponent: React.FC = () => {
           tasks={tasks}
           stateOfTasks={stateOfTasks}
           name={name}
-          selectedColor={selectedColor}
         />
         <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {closeTask()}}>
           <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>

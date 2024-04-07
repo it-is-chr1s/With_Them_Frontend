@@ -1,9 +1,10 @@
 // GameCanvas.tsx
 import React, { useRef, useEffect } from "react";
 
-interface PlayerPosition {
+interface PlayerPositionAndColor {
   x: number;
   y: number;
+  color:string;
 }
 
 interface WallPosition {
@@ -23,14 +24,13 @@ interface StateOfTasks {
 }
 
 interface GameCanvasProps {
-  players: Map<string, PlayerPosition>;
+  players: Map<string, PlayerPositionAndColor>;
   walls: WallPosition[];
   tasks: TaskPosition[];
   stateOfTasks: StateOfTasks;
   height: number;
   width: number;
   name: string;
-  selectedColor: string;
 }
 
 const cellSize = 30;
@@ -43,7 +43,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   tasks,
   stateOfTasks,
   name,
-  selectedColor,
   height,
   width,
 }) => {
@@ -140,7 +139,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw players
       players.forEach((position, playerId) => {
-        context.fillStyle = selectedColor;
+        context.fillStyle =position.color;
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
@@ -164,7 +163,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   useEffect(() => {
     drawGame();
-  }, [players, walls, name, selectedColor]);
+  }, [players, walls, name]);
 
   return (
     <canvas
