@@ -8,6 +8,7 @@ import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "./InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./ConnectingWires";
+import FileUploadDownload from "./FileUploadDownload";
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -256,7 +257,11 @@ const GameComponent: React.FC = () => {
         <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {closeTask()}}>
           <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>
           <ConnectingWires plugs={currentTask?.plugs} wires={currentTask?.wires} stompClient={stompClientTasks} lobbyId={lobbyId} name={name}/>
-          </Popup> 
+        </Popup>
+        <Popup isOpen={true} onClose={() => {}}>
+          <h2 className="font-mono font-bold text-xl mb-6">File Upload</h2>
+          <FileUploadDownload type="Upload" />
+        </Popup>
         <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
       
