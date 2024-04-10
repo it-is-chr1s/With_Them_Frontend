@@ -1,12 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ButtonComponent from "../../components/ButtonComponent";
 
 interface Probs {
     type: string;
+    progress: number;
+    stompClient: React.MutableRefObject<Client | null>;
+    lobbyId: string;
+    name: string;
 }
 
-const FileUploadDownload : React.FC<Probs> = ({type}) => {
+const FileUploadDownload : React.FC<Probs> = ({status, progress, stompClient, lobbyId, name}) => {
+    const [taskCompleted, setTaskCompleted] = useState<boolean>(false);
+
     useEffect(() => {
+        setTaskCompleted(allFilesUploaded());
+
         const canvas = document.getElementById("progressBar") as HTMLCanvasElement;
         const ctx = canvas.getContext("2d");
 
@@ -18,7 +26,7 @@ const FileUploadDownload : React.FC<Probs> = ({type}) => {
             drawRoundedRect(7, 7, canvas.width - 14, canvas.height - 14, 14, 2, "black", "#C0C0C0");
 
             
-            drawProgress(1);
+            drawProgress(progress);
             
 
             drawRoundedRect(0, 0, canvas.width, canvas.height, 20, 7, "#606060", "");
@@ -71,12 +79,31 @@ const FileUploadDownload : React.FC<Probs> = ({type}) => {
         }
 
         
-    }, []);
+    }, [progress]);
+
+    function allFilesUploaded(){
+        return status === "Upload" && progress >= 1.0
+    }
+
+    function downloadUpload(){
+        stompClient.current?.publish({
+            destination: "/app/tasks/playerAction",
+            body: JSON.stringify({
+                type: "incomingFileDownloadUpload",
+                lobby: lobbyId,
+                player: name,
+                make: status,
+                task: "FileDownloadUpload"}),
+          });
+    }
 
     return (
         <div>
             <canvas className="mb-8" height="120" id="progressBar" />
-            <ButtonComponent label={type} onClick={() => {}} />
+            <ButtonComponent label={status} onClick={() => {downloadUpload()}} />
+            {taskCompleted && (
+                <h3 className="absolute z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-extrabold text-3xl -rotate-12 py-2 bg-red-300 shadow-lg shadow-red-500">Task Completed</h3>
+            )}
         </div>
     )
 }
