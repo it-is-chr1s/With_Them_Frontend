@@ -43,6 +43,7 @@ const GameComponent: React.FC = () => {
       onConnect: () => {
         console.log("Connected to tasks websocket");
         stompClientTasks.current?.subscribe("/topic/tasks/stateOfTasks", (message) => {
+          console.log(JSON.parse(message.body))
           setStateOfTasks(JSON.parse(message.body));
         })
 
