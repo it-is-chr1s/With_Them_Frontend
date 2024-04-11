@@ -33,9 +33,15 @@ interface GameCanvasProps {
   name: string;
 }
 
+type IdColors = {
+  [key: number]: string;
+};
+
 const cellSize = 30;
 const cavnasHeight = 9 * 3;
 const cavnasWidth = 16 * 3;
+
+const idColors = {} as IdColors;
 
 const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
@@ -115,6 +121,21 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           cellSize,
           cellSize
         );
+
+        context.fillStyle = idColors[task.id];
+        context.fillRect(
+          task.x * cellSize + cellSize / 2,
+          task.y * cellSize + cellSize / 2,
+          cellSize,
+          cellSize / 5
+        );
+        context.fillRect(
+          task.x * cellSize + cellSize / 2,
+          task.y * cellSize + cellSize * 13 / 10,
+          cellSize,
+          cellSize / 5
+        );
+
         context.fillStyle = "black";
         context.textAlign = "center";
         context.textBaseline = "middle";
@@ -164,6 +185,23 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   useEffect(() => {
     drawGame();
   }, [players, walls, name]);
+
+  useEffect(() => {
+    tasks.forEach((task) => {
+      if (!(task.id in idColors)) {
+          idColors[task.id] = getRandomColor();
+      }
+    });
+  }, [tasks])
+
+  function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
 
   return (
     <canvas
