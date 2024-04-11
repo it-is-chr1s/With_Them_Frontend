@@ -7,8 +7,8 @@ import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "./InGameButton";
 import Popup from "../../components/Popup";
-import ConnectingWires from "./ConnectingWires";
-import FileUploadDownload from "./FileUploadDownload";
+import ConnectingWires from "./Tasks/ConnectingWires";
+import FileUploadDownload from "./Tasks/FileUploadDownload";
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);

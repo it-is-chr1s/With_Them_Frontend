@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ButtonComponent from "../../components/ButtonComponent";
+import ButtonComponent from "../../../components/ButtonComponent";
 
 interface Probs {
     type: string;
