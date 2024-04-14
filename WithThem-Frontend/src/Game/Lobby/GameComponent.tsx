@@ -18,6 +18,8 @@ const GameComponent: React.FC = () => {
 
   const [connected, setConnected] = useState<boolean>(false);
   const location = useLocation();
+  const GameId = location.state?.gameId;
+  const [gameId] = useState(GameId);
   const username = location.state?.username;
   const [name] = useState(username);
   const stompClientMap = useRef<Client | null>(null);
@@ -55,7 +57,7 @@ const GameComponent: React.FC = () => {
 
         stompClientTasks.current?.publish({
           destination: "/app/tasks/requestStateOfTasks",
-          body: lobbyId,
+          body: JSON.stringify({ gameId,lobbyId})
         });
       },
       onDisconnect: () => {
@@ -76,7 +78,7 @@ const GameComponent: React.FC = () => {
       onConnect: () => {
         setConnected(true);
 
-        stompClientMap.current?.subscribe("/topic/mapLayout", (message) => {
+        stompClientMap.current?.subscribe("/topic/"+gameId+"/mapLayout", (message) => {
           const mapDetails = JSON.parse(message.body);
 
           setWalls(mapDetails.wallPositions);
@@ -85,7 +87,7 @@ const GameComponent: React.FC = () => {
           setMapWidth(mapDetails.width);
         })//
 
-        stompClientMap.current?.subscribe("/topic/position", (message) => {
+        stompClientMap.current?.subscribe("/topic/"+gameId+"/position", (message) => {
           const positionUpdate = JSON.parse(message.body);
           //console.log("Position update received:", positionUpdate);
           setPlayers((prevPlayers) =>
@@ -97,13 +99,13 @@ const GameComponent: React.FC = () => {
         });
 
         
-        stompClientMap.current?.subscribe("/topic/player/" + name + "/controlsEnabled/task", (message) => {
+        stompClientMap.current?.subscribe("/topic/"+gameId+"player/" + name + "/controlsEnabled/task", (message) => {
           setOnTaskField(message.body === "true");
         });
 
         stompClientMap.current?.publish({
           destination: "/app/requestMap",
-          body: "{}",
+          body:JSON.stringify({ gameId:gameId}),
         });
       },
       onDisconnect: () => {
@@ -145,7 +147,7 @@ const GameComponent: React.FC = () => {
 
     //   stompClient.current.publish({
     //     destination: "/app/move",
-    //     body: JSON.stringify({ name: name, direction }),
+    //     body: JSON.stringify({gameId, name: name, direction }),
     //   });
     // };
 
@@ -171,7 +173,7 @@ const GameComponent: React.FC = () => {
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
         destination: "/app/move",
-        body: JSON.stringify({ name, direction }),
+        body: JSON.stringify({gameId, name, direction }),
       });
     }
   };
@@ -180,7 +182,7 @@ const GameComponent: React.FC = () => {
     const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
     stompClientTasks.current?.publish({
       destination: "/app/tasks/startTask",
-      body: JSON.stringify({ lobby: lobbyId, id: task.id, player: name }),
+      body: JSON.stringify({ gameId, lobby: lobbyId, id: task.id, player: name }),
     });
   };
 
@@ -188,7 +190,7 @@ const GameComponent: React.FC = () => {
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
         destination: "/app/changeColor",
-        body: JSON.stringify({ name ,color }),
+        body: JSON.stringify({ gameId, name ,color }),
       });
     }
     setIsOpen(false);
@@ -214,7 +216,7 @@ const GameComponent: React.FC = () => {
   const closeTask = () => {
     stompClientTasks.current?.publish({
       destination: "/app/tasks/closeTask",
-      body: JSON.stringify({ lobby: lobbyId, id: currentTask?.id, player: name }),
+      body: JSON.stringify({gameId:gameId, lobby: lobbyId, id: currentTask?.id, player: name }),
     });
   }
 
@@ -243,6 +245,7 @@ const GameComponent: React.FC = () => {
       )}
 
       <div>
+        <h1>GameID: {gameId}</h1>
         <PlayerControls onMove={handleMove} />
         <GameCanvas
           players={players}

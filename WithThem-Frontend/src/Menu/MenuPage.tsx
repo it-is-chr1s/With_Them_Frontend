@@ -11,14 +11,10 @@ const MenuPage = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleJoin = () => {
-    togglePopup();
-  };
   return (
     <Layout>
       <h1 className="text-white text-6xl font-bold mb-8">With Them</h1>
       <div className="flex flex-col items-center space-y-4">
-        {" "}
         <ButtonComponent
           onClick={() => {
             window.location.href = "/join-lobby";
@@ -26,8 +22,8 @@ const MenuPage = () => {
           label="Join Lobby"
         />
         <ButtonComponent onClick={togglePopup} label="Create New Lobby" />
-        <NameInputPopup isOpen={isOpen} onClose={togglePopup} />
-        
+        {/* Pass initialGameId as undefined when opening the popup for creating a new lobby */}
+        <NameInputPopup isOpen={isOpen} onClose={togglePopup} initialGameId={undefined} />
       </div>
     </Layout>
   );
