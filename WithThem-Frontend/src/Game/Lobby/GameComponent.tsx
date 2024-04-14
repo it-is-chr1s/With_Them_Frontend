@@ -7,7 +7,8 @@ import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "./InGameButton";
 import Popup from "../../components/Popup";
-import ConnectingWires from "./ConnectingWires";
+import ConnectingWires from "./Tasks/ConnectingWires";
+import FileUploadDownload from "./Tasks/FileUploadDownload";
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +45,7 @@ const GameComponent: React.FC = () => {
       onConnect: () => {
         console.log("Connected to tasks websocket");
         stompClientTasks.current?.subscribe("/topic/tasks/stateOfTasks", (message) => {
+          console.log(JSON.parse(message.body))
           setStateOfTasks(JSON.parse(message.body));
         })
 
@@ -180,10 +182,29 @@ const GameComponent: React.FC = () => {
 
   const use = () => {
     const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
+<<<<<<< HEAD
     stompClientTasks.current?.publish({
       destination: "/app/tasks/startTask",
       body: JSON.stringify({ gameId, lobby: lobbyId, id: task.id, player: name }),
     });
+=======
+    if(currentTask?.task === "FileDownloadUpload"){
+      stompClientTasks.current?.publish({
+        destination: "/app/tasks/playerAction",
+        body: JSON.stringify({
+            type: "incomingFileDownloadUpload",
+            lobby: lobbyId,
+            player: name,
+            make: "openFileUpload",
+            task: "FileDownloadUpload"}),
+      });
+    }else{
+      stompClientTasks.current?.publish({
+        destination: "/app/tasks/startTask",
+        body: JSON.stringify({ lobby: lobbyId, id: task.id, player: name }),
+      });
+    }
+>>>>>>> 1b51a42e3d8955e61630b16c7b4e27d1429fc0e9
   };
 
   const handleColorSelect = (color: string) => {
@@ -197,13 +218,19 @@ const GameComponent: React.FC = () => {
   };
 
   useEffect(() => {
-    if(players.get(name) != undefined){
-      console.log(players.get(name));
-      
+    if(players.get(name) != undefined){      
       const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
           if(task != null && task.id in stateOfTasks){
             if(stateOfTasks[task.id] === "available"){
-              setUseEnabled(onTaskField);
+              if(currentTask == null && task.taskType != "File Upload"){
+                setUseEnabled(onTaskField);
+              }else{
+                setUseEnabled(false);
+              }
+            }else if(stateOfTasks[task.id] === "active"){
+              if(currentTask?.task === "FileDownloadUpload" && currentTask.status === "Upload" && task.id === currentTask.id){
+                setUseEnabled(onTaskField);
+              }
             }else if(stateOfTasks[task.id] === "active"){
               setUseEnabled(false)
             }
@@ -259,7 +286,11 @@ const GameComponent: React.FC = () => {
         <Popup isOpen={currentTask?.task === "Connecting Wires"} onClose={() => {closeTask()}}>
           <h2 className="font-mono font-bold text-xl mb-6">Connecting Wires</h2>
           <ConnectingWires plugs={currentTask?.plugs} wires={currentTask?.wires} stompClient={stompClientTasks} lobbyId={lobbyId} name={name}/>
-          </Popup> 
+        </Popup>
+        <Popup isOpen={currentTask?.task === "FileDownloadUpload" && (currentTask?.status === "Download" || currentTask?.status === "Upload" && currentTask?.progress >= 0)} onClose={() => {closeTask()}}>
+          <h2 className="font-mono font-bold text-xl mb-6">{"File " + currentTask?.status}</h2>
+          <FileUploadDownload status={currentTask?.status} progress={currentTask?.progress} stompClient={stompClientTasks} lobbyId={lobbyId} name={name} />
+        </Popup>
         <InGameButton onClick={use} label="use" active={useEnabled}></InGameButton>
       </div>
       
