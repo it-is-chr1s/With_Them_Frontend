@@ -16,6 +16,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
     const navigate = useNavigate();
     const handleJoin = async () => {
         // If gameId is not provided, create a new game
+        console.log(initialGameId);
         if (initialGameId === undefined) {
             try {
                 const response = await fetch('http://localhost:4000/createGame', {
@@ -36,11 +37,9 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
                 console.error('Error creating game:', error);
             }
             console.log({gameId});
-        }
-        else{
-            console.log("Join:");
-            console.log({gameId});
-
+        }else{
+            setGameId(initialGameId);
+            console.log("GAMEID:"+gameId);
         }
     
         if (username.trim() !== "" && gameId) {

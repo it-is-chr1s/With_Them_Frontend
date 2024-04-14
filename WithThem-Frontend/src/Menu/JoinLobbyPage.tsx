@@ -13,8 +13,11 @@ const JoinLobbyPage = () => {
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
+    const value = event.target.value;
+    setInputValue(value);
+    setInitialGameId(value); // Set initialGameId whenever input value changes
 };
+
 
   const handleJoin = async () => {
     // Check if lobby exists, if it is not full and if the game is not on
