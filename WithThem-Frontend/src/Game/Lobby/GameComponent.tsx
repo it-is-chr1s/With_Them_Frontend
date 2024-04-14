@@ -182,12 +182,6 @@ const GameComponent: React.FC = () => {
 
   const use = () => {
     const task = tasks.find(obj => obj.x === Math.floor(players.get(name).x) && obj.y === Math.floor(players.get(name).y));
-<<<<<<< HEAD
-    stompClientTasks.current?.publish({
-      destination: "/app/tasks/startTask",
-      body: JSON.stringify({ gameId, lobby: lobbyId, id: task.id, player: name }),
-    });
-=======
     if(currentTask?.task === "FileDownloadUpload"){
       stompClientTasks.current?.publish({
         destination: "/app/tasks/playerAction",
@@ -201,10 +195,9 @@ const GameComponent: React.FC = () => {
     }else{
       stompClientTasks.current?.publish({
         destination: "/app/tasks/startTask",
-        body: JSON.stringify({ lobby: lobbyId, id: task.id, player: name }),
+        body: JSON.stringify({gameId:gameId, lobby: lobbyId, id: task.id, player: name }),
       });
     }
->>>>>>> 1b51a42e3d8955e61630b16c7b4e27d1429fc0e9
   };
 
   const handleColorSelect = (color: string) => {
