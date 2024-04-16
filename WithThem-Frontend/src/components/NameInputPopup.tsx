@@ -25,7 +25,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
                         'Content-Type': 'application/json',
                     },
                     // Optionally pass any data needed for game creation
-                    body: JSON.stringify({}),
+                    body:JSON.stringify({ hostName:username}),
                 });
                 if (response.ok) {
                     const data = await response.text();
