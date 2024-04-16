@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from "react";
 interface PlayerPositionAndColor {
   x: number;
   y: number;
-  color:string;
+  color: string;
 }
 
 interface WallPosition {
@@ -106,13 +106,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw tasks
       tasks.forEach((task) => {
-        if(task.id in stateOfTasks){
-          if(stateOfTasks[task.id] === "available"){
+        if (task.id in stateOfTasks) {
+          if (stateOfTasks[task.id] === "available") {
             context.fillStyle = "red";
-          }else if(stateOfTasks[task.id] === "active"){
+          } else if (stateOfTasks[task.id] === "active") {
             context.fillStyle = "rgb(255, 109, 31)";
           }
-        }else{
+        } else {
           context.fillStyle = "rgb(31, 255, 42)";
         }
         context.fillRect(
@@ -131,7 +131,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         );
         context.fillRect(
           task.x * cellSize + cellSize / 2,
-          task.y * cellSize + cellSize * 13 / 10,
+          task.y * cellSize + (cellSize * 13) / 10,
           cellSize,
           cellSize / 5
         );
@@ -140,11 +140,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         context.textAlign = "center";
         context.textBaseline = "middle";
         const fontSize = 6;
-        context.font = '6px Arial';
+        context.font = "6px Arial";
         const textX = (task.x + 1) * cellSize;
         const textY = (task.y + 1.1) * cellSize;
 
-        const lines = task.taskType.split(' ');
+        const lines = task.taskType.split(" ");
 
         const lineHeight = fontSize * 1.2;
         const totalHeight = lines.length * lineHeight;
@@ -152,15 +152,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         let adjustedTextY = textY - totalHeight / 2;
 
         lines.forEach((line, index) => {
-            const lineY = adjustedTextY + index * lineHeight;
-            context.fillText(line, textX, lineY);
+          const lineY = adjustedTextY + index * lineHeight;
+          context.fillText(line, textX, lineY);
         });
-        
       });
 
       // Draw players
       players.forEach((position, playerId) => {
-        context.fillStyle =position.color;
+        context.fillStyle = position.color;
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
@@ -169,7 +168,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           0,
           2 * Math.PI
         );
-        context.font = '8px Arial';
+        context.font = "8px Arial";
         context.fillText(
           playerId,
           (position.x + 0.5) * cellSize,
@@ -189,19 +188,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   useEffect(() => {
     tasks.forEach((task) => {
       if (!(task.id in idColors)) {
-          idColors[task.id] = getRandomColor();
+        idColors[task.id] = getRandomColor();
       }
     });
-  }, [tasks])
+  }, [tasks]);
 
   function getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
+    const letters = "0123456789ABCDEF";
+    let color = "#";
     for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+      color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-}
+  }
 
   return (
     <canvas
