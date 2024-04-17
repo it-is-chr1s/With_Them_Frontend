@@ -6,6 +6,7 @@ interface ChooseColorPopupProps {
     isOpen: boolean;
     onClose: () => void;
     onColorSelect: (color: string) => void; // New prop to pass selected color
+    //selectedColors:string[]
 }
 
 const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose, onColorSelect }) => {

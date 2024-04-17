@@ -1,3 +1,4 @@
+import { Client } from "@stomp/stompjs";
 import ConnectingWiresButton from "./ConnectingWiresButton";
 import React, { useEffect, useState } from 'react';
 
