@@ -37,20 +37,18 @@ const GameComponent: React.FC = () => {
   const [mapHeight, setMapHeight] = useState(0);
   const [mapWidth, setMapWidth] = useState(0);
 
-  const lobbyId = "123";
-
   useEffect(() => {
     stompClientTasks.current = new Client({
       brokerURL: "ws://localhost:4001/ws",
       onConnect: () => {
         console.log("Connected to tasks websocket");
-        stompClientTasks.current?.subscribe("/topic/tasks/" + lobbyId + "/stateOfTasks",
+        stompClientTasks.current?.subscribe("/topic/tasks/" + GameId + "/stateOfTasks",
         (message) => {
-          console.log(JSON.parse(message.body))
+          console.log("stateOfTasks:" + GameId + "\n", JSON.parse(message.body))
           setStateOfTasks(JSON.parse(message.body));
         })
 
-        stompClientTasks.current?.subscribe("/topic/tasks/" + lobbyId + "/currentTask/" + name,
+        stompClientTasks.current?.subscribe("/topic/tasks/" + GameId + "/currentTask/" + name,
         (message) => {
           if(message.body === ""){
             setCurrentTask(null)
@@ -61,7 +59,7 @@ const GameComponent: React.FC = () => {
 
         stompClientTasks.current?.publish({
           destination: "/app/tasks/requestStateOfTasks",
-          body: JSON.stringify({ gameId, lobbyId }),
+          body: gameId,
         });
       },
       onDisconnect: () => {},
@@ -111,7 +109,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" + gameId + "player/" + name + "/controlsEnabled/task",
+          "/topic/" + gameId + "/player/" + name + "/controlsEnabled/task",
           (message) => {
             setOnTaskField(message.body === "true");
           }
@@ -166,7 +164,7 @@ const GameComponent: React.FC = () => {
         destination: "/app/tasks/playerAction",
         body: JSON.stringify({
           type: "incomingFileDownloadUpload",
-          lobby: lobbyId,
+          lobby: GameId,
           player: name,
           make: "openFileUpload",
           task: "FileDownloadUpload",
@@ -177,7 +175,7 @@ const GameComponent: React.FC = () => {
         destination: "/app/tasks/startTask",
         body: JSON.stringify({
           gameId: gameId,
-          lobby: lobbyId,
+          lobby: GameId,
           id: task.id,
           player: name,
         }),
@@ -231,7 +229,7 @@ const GameComponent: React.FC = () => {
       destination: "/app/tasks/closeTask",
       body: JSON.stringify({
         gameId: gameId,
-        lobby: lobbyId,
+        lobby: GameId,
         id: currentTask?.id,
         player: name,
       }),
@@ -285,7 +283,7 @@ const GameComponent: React.FC = () => {
             plugs={currentTask?.plugs}
             wires={currentTask?.wires}
             stompClient={stompClientTasks}
-            lobbyId={lobbyId}
+            lobbyId={GameId}
             name={name}
           />
         </Popup>
@@ -306,7 +304,7 @@ const GameComponent: React.FC = () => {
             status={currentTask?.status}
             progress={currentTask?.progress}
             stompClient={stompClientTasks}
-            lobbyId={lobbyId}
+            lobbyId={GameId}
             name={name}
           />
         </Popup>
