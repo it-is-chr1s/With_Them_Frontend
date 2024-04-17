@@ -42,12 +42,12 @@ const GameComponent: React.FC = () => {
       brokerURL: 'ws://localhost:4001/ws',
       onConnect: () => {
         console.log("Connected to tasks websocket");
-        stompClientTasks.current?.subscribe("/topic/tasks/stateOfTasks", (message) => {
+        stompClientTasks.current?.subscribe("/topic/tasks/" + lobbyId + "/stateOfTasks", (message) => {
           console.log(JSON.parse(message.body))
           setStateOfTasks(JSON.parse(message.body));
         })
 
-        stompClientTasks.current?.subscribe("/topic/tasks/currentTask/" + name, (message) => {
+        stompClientTasks.current?.subscribe("/topic/tasks/" + lobbyId + "/currentTask/" + name, (message) => {
           if(message.body === ""){
             setCurrentTask(null)
           }else{
