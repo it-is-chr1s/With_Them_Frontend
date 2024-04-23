@@ -5,7 +5,7 @@ import PlayerControls from "./PlayerControls";
 import { useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
-import InGameButton from "./InGameButton";
+import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
@@ -29,6 +29,9 @@ const GameComponent: React.FC = () => {
 		Map<string, { x: number; y: number; color: string }>
 	>(new Map());
 	const [useEnabled, setUseEnabled] = useState<boolean>(false);
+  const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
+	const [meetingEnabled, setMeetingEnabled] = useState<boolean>(false);
+  const[meetingPosition,setMeetingPosition]=useState();
 	const [onTaskField, setOnTaskField] = useState<boolean>(false);
 	const [walls, setWalls] = useState([]);
 	const [tasks, setTasks] = useState([]);
@@ -97,6 +100,7 @@ const GameComponent: React.FC = () => {
 
 						setWalls(mapDetails.wallPositions);
 						setTasks(mapDetails.taskPositions);
+            setMeetingPosition(mapDetails.meetingPosition)
 						setMapHeight(mapDetails.height);
 						setMapWidth(mapDetails.width);
 					}
@@ -179,6 +183,10 @@ const GameComponent: React.FC = () => {
 		}
 	};
 
+  const startMeeting=()=>{
+
+
+  }
 	const use = () => {
 		const task = tasks.find(
 			(obj) =>
@@ -261,10 +269,39 @@ const GameComponent: React.FC = () => {
 			}),
 		});
 	};
-
+	useEffect(() => {
+		if (players.get(name) != undefined) {
+			const task = tasks.find(
+				(obj) =>
+					obj.x === Math.floor(players.get(name).x) &&
+					obj.y === Math.floor(players.get(name).y)
+			);
+			if (task != null && task.id in stateOfTasks) {
+				if (stateOfTasks[task.id] === "available") {
+					if (currentTask == null && task.taskType != "File Upload") {
+						setUseEnabled(onTaskField);
+					} else {
+						setUseEnabled(false);
+					}
+				} else if (stateOfTasks[task.id] === "active") {
+					if (
+						currentTask?.task === "FileDownloadUpload" &&
+						currentTask.status === "Upload" &&
+						task.id === currentTask.id
+					) {
+						setUseEnabled(onTaskField);
+					}
+				} else if (stateOfTasks[task.id] === "active") {
+					setUseEnabled(false);
+				}
+			} else {
+				setUseEnabled(false);
+			}
+		}
+	}, [onMeetingField]);
 	return (
 		<div className="container">
-			{connected ? (
+			{/* {connected ? (
 				<button
 					onClick={() => {
 						stompClientMap.current?.deactivate();
@@ -284,10 +321,9 @@ const GameComponent: React.FC = () => {
 				>
 					Connect
 				</button>
-			)}
+			)} */}
 
 			<div>
-				<h1>GameID: {gameId}</h1>
 				<PlayerControls onMove={handleMove} />
 				<GameCanvas
 					players={players}
@@ -295,6 +331,7 @@ const GameComponent: React.FC = () => {
 					width={mapWidth}
 					walls={walls}
 					tasks={tasks}
+          meeting={{ x: meetingPosition?.x ?? 0, y: meetingPosition?.y ?? 0 }}
 					stateOfTasks={stateOfTasks}
 					name={name}
 				/>
@@ -337,21 +374,34 @@ const GameComponent: React.FC = () => {
 						name={name}
 					/>
 				</Popup>
-				<InGameButton
-					onClick={use}
-					label="use"
-					active={useEnabled}
-				></InGameButton>
-			</div>
+        <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+            <InGameButton
+                onClick={use}
+                label="Use"
+                active={useEnabled}
+            />
+            <InGameButton
+                onClick={startMeeting}
+                label="Meeting"
+                active={meetingEnabled}
+            />
+				<h1>GameID: {gameId}</h1>
 
-			<div className="flex justify-end">
-				<ButtonComponent onClick={togglePopup} label="Choose color" />
+<ButtonComponent onClick={togglePopup} label="Choose color" />
 				<ChooseColorPopup
 					isOpen={isOpen}
 					onClose={togglePopup}
 					onColorSelect={handleColorSelect}
 				/>
+        </div>
+        <div className="flex justify-end">
+				
 			</div>
+				
+      
+			</div>
+
+			
 		</div>
 	);
 };

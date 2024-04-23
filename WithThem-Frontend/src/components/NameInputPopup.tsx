@@ -22,7 +22,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
                 const response = await fetch('http://localhost:4000/createGame', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     // Optionally pass any data needed for game creation
                     body:JSON.stringify({ hostName:username}),
