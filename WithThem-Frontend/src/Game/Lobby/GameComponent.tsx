@@ -17,6 +17,9 @@ const GameComponent: React.FC = () => {
 		setIsOpen(!isOpen);
 	};
 
+  const [startEmergencyMeeting, setStartMeeting]=useState(false);
+
+
 	const [connected, setConnected] = useState<boolean>(false);
 	const location = useLocation();
 	const GameId = location.state?.gameId;
@@ -30,7 +33,6 @@ const GameComponent: React.FC = () => {
 	>(new Map());
 	const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
-	const [meetingEnabled, setMeetingEnabled] = useState<boolean>(false);
   const[meetingPosition,setMeetingPosition]=useState();
 	const [onTaskField, setOnTaskField] = useState<boolean>(false);
 	const [walls, setWalls] = useState([]);
@@ -132,6 +134,17 @@ const GameComponent: React.FC = () => {
 					}
 				);
 
+        stompClientMap.current?.subscribe(
+					"/topic/" +
+						gameId +
+						"/player/" +
+						name +
+						"/controlsEnabled/emergencyMeeting",
+					(message) => {
+						setOnMeetingField(message.body === "true");
+					}
+				);
+
 				stompClientMap.current?.subscribe(
 					"/topic/" + gameId + "/" + name,
 					(message) => {
@@ -183,9 +196,8 @@ const GameComponent: React.FC = () => {
 		}
 	};
 
-  const startMeeting=()=>{
-
-
+  const startEndMeeting=()=>{
+    setStartMeeting(!startEmergencyMeeting);
   }
 	const use = () => {
 		const task = tasks.find(
@@ -269,6 +281,7 @@ const GameComponent: React.FC = () => {
 			}),
 		});
 	};
+
 	useEffect(() => {
 		if (players.get(name) != undefined) {
 			const task = tasks.find(
@@ -299,6 +312,8 @@ const GameComponent: React.FC = () => {
 			}
 		}
 	}, [onMeetingField]);
+
+
 	return (
 		<div className="container">
 			{/* {connected ? (
@@ -374,20 +389,32 @@ const GameComponent: React.FC = () => {
 						name={name}
 					/>
 				</Popup>
+
+        <Popup 
+          isOpen={startEmergencyMeeting}
+          onClose={startEndMeeting}>
+          <h1>EMERGENCY MEETING</h1>
+            {/*<EmergencyMeeting
+            lobbyId={GameId}
+						name={name}
+        />*/}
+        </Popup>
+
         <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+            <InGameButton
+                onClick={startEndMeeting}
+                label="Meeting"
+                active={onMeetingField}
+            />
             <InGameButton
                 onClick={use}
                 label="Use"
                 active={useEnabled}
             />
-            <InGameButton
-                onClick={startMeeting}
-                label="Meeting"
-                active={meetingEnabled}
-            />
+           
 				<h1>GameID: {gameId}</h1>
 
-<ButtonComponent onClick={togglePopup} label="Choose color" />
+        <ButtonComponent onClick={togglePopup} label="Choose color" />
 				<ChooseColorPopup
 					isOpen={isOpen}
 					onClose={togglePopup}
