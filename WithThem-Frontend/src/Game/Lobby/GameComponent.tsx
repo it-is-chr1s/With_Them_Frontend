@@ -28,12 +28,11 @@ const GameComponent: React.FC = () => {
 	const [name] = useState(username);
 	const stompClientMap = useRef<Client | null>(null);
 	const stompClientTasks = useRef<Client | null>(null);
-	const [players, setPlayers] = useState<
-		Map<string, { x: number; y: number; color: string }>
-	>(new Map());
+	const stompClientMeeting = useRef<Client | null>(null);
+	const [players, setPlayers] = useState<	Map<string, { x: number; y: number; color: string }>>(new Map());
 	const [useEnabled, setUseEnabled] = useState<boolean>(false);
-  const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
-  const[meetingPosition,setMeetingPosition]=useState();
+  	const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
+  	const[meetingPosition,setMeetingPosition]=useState();
 	const [onTaskField, setOnTaskField] = useState<boolean>(false);
 	const [walls, setWalls] = useState([]);
 	const [tasks, setTasks] = useState([]);
@@ -43,6 +42,36 @@ const GameComponent: React.FC = () => {
 	const [mapWidth, setMapWidth] = useState(0);
 	const [role, setRole] = useState(0);
 	useEffect(() => {
+		stompClientMeeting.current=new Client({
+			brokerURL: "ws://localhost:4002/ws",
+			onConnect: () => {
+				console.log("Connected to emergency meeting websocket");
+				stompClientTasks.current?.subscribe(
+					"/topic/meeting/" + GameId + "/running",
+					(message) => {
+						console.log("Startable:" + GameId + "\n", JSON.parse(message.body));
+						setStartMeeting(JSON.parse(message.body));
+					}
+				);
+				
+				stompClientTasks.current?.publish({
+					destination: "/app/meeting/startable",
+					body: gameId,
+				});
+			},
+			onDisconnect: () => {},
+			onWebSocketError: (error: Event) => {
+				console.error("Error with Emergency Meeting websocket", error);
+			},
+			onStompError: (frame: any) => {
+				console.error(
+					"Broker reported error in Emergency Meeting: " + frame.headers["message"]
+				);
+				console.error("Additional details: " + frame.body);
+			},
+		});
+		stompClientMeeting.current.activate();
+
 		stompClientTasks.current = new Client({
 			brokerURL: "ws://localhost:4001/ws",
 			onConnect: () => {
@@ -134,7 +163,7 @@ const GameComponent: React.FC = () => {
 					}
 				);
 
-        stompClientMap.current?.subscribe(
+        		stompClientMap.current?.subscribe(
 					"/topic/" +
 						gameId +
 						"/player/" +
@@ -196,39 +225,7 @@ const GameComponent: React.FC = () => {
 		}
 	};
 
-  const startEndMeeting=()=>{
-    setStartMeeting(!startEmergencyMeeting);
-  }
-	const use = () => {
-		const task = tasks.find(
-			(obj) =>
-				obj.x === Math.floor(players.get(name).x) &&
-				obj.y === Math.floor(players.get(name).y)
-		);
-		if (currentTask?.task === "FileDownloadUpload") {
-			stompClientTasks.current?.publish({
-				destination: "/app/tasks/playerAction",
-				body: JSON.stringify({
-					type: "incomingFileDownloadUpload",
-					lobby: GameId,
-					player: name,
-					make: "openFileUpload",
-					task: "FileDownloadUpload",
-				}),
-			});
-		} else {
-			stompClientTasks.current?.publish({
-				destination: "/app/tasks/startTask",
-				body: JSON.stringify({
-					gameId: gameId,
-					lobby: GameId,
-					id: task.id,
-					player: name,
-				}),
-			});
-		}
-	};
-
+  
 	const handleColorSelect = (color: string) => {
 		if (connected && stompClientMap.current) {
 			stompClientMap.current.publish({
@@ -269,6 +266,55 @@ const GameComponent: React.FC = () => {
 			}
 		}
 	}, [onTaskField]);
+
+	const startMeeting=()=>{
+		if (connected && stompClientMeeting.current && !startEmergencyMeeting) {
+			setStartMeeting(true);
+			stompClientMeeting.current.publish({
+				destination: "/app/meeting/startMeeting",
+				body: JSON.stringify({ gameId}),
+			})
+		}
+	  }
+	const endMeeting=()=>{
+		if (connected && stompClientMeeting.current && startEmergencyMeeting) {
+			setStartMeeting(false);
+			stompClientMeeting.current.publish({
+				destination: "/app/meeting/endMeeting",
+				body: JSON.stringify({gameId}),
+			})
+			
+		}
+	}
+	const use = () => {
+		const task = tasks.find(
+			(obj) =>
+				obj.x === Math.floor(players.get(name).x) &&
+				obj.y === Math.floor(players.get(name).y)
+		);
+		if (currentTask?.task === "FileDownloadUpload") {
+			stompClientTasks.current?.publish({
+				destination: "/app/tasks/playerAction",
+				body: JSON.stringify({
+					type: "incomingFileDownloadUpload",
+					lobby: GameId,
+					player: name,
+					make: "openFileUpload",
+					task: "FileDownloadUpload",
+				}),
+			});
+		} else {
+			stompClientTasks.current?.publish({
+				destination: "/app/tasks/startTask",
+				body: JSON.stringify({
+					gameId: gameId,
+					lobby: GameId,
+					id: task.id,
+					player: name,
+				}),
+			});
+		}
+	};
 
 	const closeTask = () => {
 		stompClientTasks.current?.publish({
@@ -316,28 +362,6 @@ const GameComponent: React.FC = () => {
 
 	return (
 		<div className="container">
-			{/* {connected ? (
-				<button
-					onClick={() => {
-						stompClientMap.current?.deactivate();
-						setConnected(false);
-					}}
-				>
-					Disconnect
-				</button>
-			) : (
-				<button
-					onClick={() => {
-						if (stompClientMap.current) {
-							stompClientMap.current.activate();
-							setConnected(true);
-						}
-					}}
-				>
-					Connect
-				</button>
-			)} */}
-
 			<div>
 				<PlayerControls onMove={handleMove} />
 				<GameCanvas
@@ -346,7 +370,7 @@ const GameComponent: React.FC = () => {
 					width={mapWidth}
 					walls={walls}
 					tasks={tasks}
-          meeting={{ x: meetingPosition?.x ?? 0, y: meetingPosition?.y ?? 0 }}
+          			meeting={{ x: meetingPosition?.x ?? 0, y: meetingPosition?.y ?? 0 }}
 					stateOfTasks={stateOfTasks}
 					name={name}
 				/>
@@ -392,7 +416,7 @@ const GameComponent: React.FC = () => {
 
         <Popup 
           isOpen={startEmergencyMeeting}
-          onClose={startEndMeeting}>
+          onClose={endMeeting}>
           <h1>EMERGENCY MEETING</h1>
             {/*<EmergencyMeeting
             lobbyId={GameId}
@@ -402,7 +426,7 @@ const GameComponent: React.FC = () => {
 
         <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
             <InGameButton
-                onClick={startEndMeeting}
+                onClick={startMeeting}
                 label="Meeting"
                 active={onMeetingField}
             />

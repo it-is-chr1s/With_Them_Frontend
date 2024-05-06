@@ -19,13 +19,12 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
         console.log(initialGameId);
         if (initialGameId === undefined) {
             try {
-                const response = await fetch('http://localhost:4000/createGame', {
+                console.log(username);
+                const response = await fetch(`http://localhost:4000/createGame?hostName=${username}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    // Optionally pass any data needed for game creation
-                    body:JSON.stringify({ hostName:username}),
                 });
                 if (response.ok) {
                     const data = await response.text();
@@ -37,9 +36,9 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
                 console.error('Error creating game:', error);
             }
             console.log({gameId});
-        }else{
+        } else {
             setGameId(initialGameId);
-            console.log("GAMEID:"+gameId);
+            console.log("GAMEID:" + gameId);
         }
     
         if (username.trim() !== "" && gameId) {
@@ -47,6 +46,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({ isOpen, onClose, initia
             navigate('/lobby', { state: { gameId, username } });
         }
     };
+    
     
     return (
         <Popup isOpen={isOpen} onClose={onClose}>
