@@ -46,7 +46,8 @@ const GameComponent: React.FC = () => {
 			brokerURL: "ws://localhost:4002/ws",
 			onConnect: () => {
 				console.log("Connected to emergency meeting websocket");
-				stompClientTasks.current?.subscribe(
+				
+				stompClientMeeting.current?.subscribe(
 					"/topic/meeting/" + GameId + "/running",
 					(message) => {
 						console.log("Startable:" + GameId + "\n", JSON.parse(message.body));
@@ -54,8 +55,13 @@ const GameComponent: React.FC = () => {
 					}
 				);
 				
-				stompClientTasks.current?.publish({
-					destination: "/app/meeting/startable",
+				stompClientMeeting.current?.publish({
+					destination: "/app/meeting/startMeeting",
+					body: gameId,
+				});
+				
+				stompClientMeeting.current?.publish({
+					destination: "/app/meeting/endMeeting",
 					body: gameId,
 				});
 			},
