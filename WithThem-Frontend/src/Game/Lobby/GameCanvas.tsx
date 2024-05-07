@@ -5,6 +5,7 @@ interface PlayerPositionAndColor {
   x: number;
   y: number;
   color: string;
+  isAlive: boolean;
 }
 
 interface Position {
@@ -114,7 +115,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         cellSize,
         cellSize
       );
-      
+
       // Draw tasks
       tasks.forEach((task) => {
         if (task.id in stateOfTasks) {
@@ -171,6 +172,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       // Draw players
       players.forEach((position, playerId) => {
         context.fillStyle = position.color;
+        if (!position.isAlive) {
+          context.fillStyle = "black";
+        }
         context.beginPath();
         context.arc(
           position.x * cellSize + cellSize / 2,
