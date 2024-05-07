@@ -44,7 +44,7 @@ const GameComponent: React.FC = () => {
 	const [role, setRole] = useState(0);
 	const [startGame, setStartGame] = useState(false);
 	const [isRunning, setIsRunning] = useState(false);
-	const [roleWon, setRoleWon] = useState(null);
+	const [roleWon, setRoleWon] = useState(undefined);
 
 	useEffect(() => {
 		stompClientMeeting.current = new Client({
@@ -205,19 +205,16 @@ const GameComponent: React.FC = () => {
 					(message) => {
 						const roleTemp = JSON.parse(message.body);
 
-						console.log("Role updates received", roleTemp);
 						setStartGame(false);
 					}
 				);
 				stompClientMap.current?.subscribe(
 					"/topic/" + gameId + "/gameOver",
 					(message) => {
-						const roleWon = JSON.parse(message.body);
-
-						console.log("Game Won by ", roleWon);
+						console.log("Game Won by ", message.body);
 						setIsRunning(false);
 						setRole(0);
-						setRoleWon(roleWon.role);
+						setRoleWon(message.body);
 					}
 				);
 
@@ -469,7 +466,21 @@ const GameComponent: React.FC = () => {
 						name={name}
         />*/}
 				</Popup>
-
+				<Popup
+					isOpen={roleWon != null}
+					onClose={() => {
+						setRoleWon(null);
+					}}
+				>
+					<h2 className="font-mono font-bold text-xl mb-6">
+						{roleWon}
+					</h2>
+				</Popup>
+				<Popup isOpen={startGame} onClose={() => setStartGame(false)}>
+					<h2 className="font-mono font-bold text-xl mb-6">
+						Game won by {role == 1 ? "Imposter" : "Crewmate"}
+					</h2>
+				</Popup>
 				<div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
 					{isRunning ? (
 						<>
