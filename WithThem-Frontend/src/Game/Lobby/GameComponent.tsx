@@ -17,8 +17,7 @@ const GameComponent: React.FC = () => {
 		setIsOpen(!isOpen);
 	};
 
-  const [startEmergencyMeeting, setStartMeeting]=useState(false);
-
+	const [startEmergencyMeeting, setStartMeeting] = useState(false);
 
 	const [connected, setConnected] = useState<boolean>(false);
 	const location = useLocation();
@@ -29,10 +28,12 @@ const GameComponent: React.FC = () => {
 	const stompClientMap = useRef<Client | null>(null);
 	const stompClientTasks = useRef<Client | null>(null);
 	const stompClientMeeting = useRef<Client | null>(null);
-	const [players, setPlayers] = useState<	Map<string, { x: number; y: number; color: string }>>(new Map());
+	const [players, setPlayers] = useState<
+		Map<string, { x: number; y: number; color: string }>
+	>(new Map());
 	const [useEnabled, setUseEnabled] = useState<boolean>(false);
-  	const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
-  	const[meetingPosition,setMeetingPosition]=useState();
+	const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
+	const [meetingPosition, setMeetingPosition] = useState();
 	const [onTaskField, setOnTaskField] = useState<boolean>(false);
 	const [walls, setWalls] = useState([]);
 	const [tasks, setTasks] = useState([]);
@@ -41,25 +42,32 @@ const GameComponent: React.FC = () => {
 	const [mapHeight, setMapHeight] = useState(0);
 	const [mapWidth, setMapWidth] = useState(0);
 	const [role, setRole] = useState(0);
+	const [startGame, setStartGame] = useState(false);
+	const [isRunning, setIsRunning] = useState(false);
+	const [roleWon, setRoleWon] = useState(null);
+
 	useEffect(() => {
-		stompClientMeeting.current=new Client({
+		stompClientMeeting.current = new Client({
 			brokerURL: "ws://localhost:4002/ws",
 			onConnect: () => {
 				console.log("Connected to emergency meeting websocket");
-				
+
 				stompClientMeeting.current?.subscribe(
 					"/topic/meeting/" + GameId + "/running",
 					(message) => {
-						console.log("Startable:" + GameId + "\n", JSON.parse(message.body));
+						console.log(
+							"Startable:" + GameId + "\n",
+							JSON.parse(message.body)
+						);
 						setStartMeeting(JSON.parse(message.body));
 					}
 				);
-				
+
 				stompClientMeeting.current?.publish({
 					destination: "/app/meeting/startMeeting",
 					body: gameId,
 				});
-				
+
 				stompClientMeeting.current?.publish({
 					destination: "/app/meeting/endMeeting",
 					body: gameId,
@@ -71,7 +79,8 @@ const GameComponent: React.FC = () => {
 			},
 			onStompError: (frame: any) => {
 				console.error(
-					"Broker reported error in Emergency Meeting: " + frame.headers["message"]
+					"Broker reported error in Emergency Meeting: " +
+						frame.headers["message"]
 				);
 				console.error("Additional details: " + frame.body);
 			},
@@ -137,7 +146,7 @@ const GameComponent: React.FC = () => {
 
 						setWalls(mapDetails.wallPositions);
 						setTasks(mapDetails.taskPositions);
-            setMeetingPosition(mapDetails.meetingPosition)
+						setMeetingPosition(mapDetails.meetingPosition);
 						setMapHeight(mapDetails.height);
 						setMapWidth(mapDetails.width);
 					}
@@ -169,7 +178,7 @@ const GameComponent: React.FC = () => {
 					}
 				);
 
-        		stompClientMap.current?.subscribe(
+				stompClientMap.current?.subscribe(
 					"/topic/" +
 						gameId +
 						"/player/" +
@@ -186,8 +195,29 @@ const GameComponent: React.FC = () => {
 						const roleTemp = JSON.parse(message.body);
 
 						console.log("Role updates received", roleTemp);
-
+						setIsRunning(true);
 						setRole(roleTemp.role);
+						setStartGame(true);
+					}
+				);
+				stompClientMap.current?.subscribe(
+					"/topic/" + gameId + "/ready",
+					(message) => {
+						const roleTemp = JSON.parse(message.body);
+
+						console.log("Role updates received", roleTemp);
+						setStartGame(false);
+					}
+				);
+				stompClientMap.current?.subscribe(
+					"/topic/" + gameId + "/gameOver",
+					(message) => {
+						const roleWon = JSON.parse(message.body);
+
+						console.log("Game Won by ", roleWon);
+						setIsRunning(false);
+						setRole(0);
+						setRoleWon(roleWon.role);
 					}
 				);
 
@@ -231,7 +261,18 @@ const GameComponent: React.FC = () => {
 		}
 	};
 
-  
+	const startGameFunction = () => {
+		if (connected && stompClientMap.current) {
+			fetch("http://localhost:4000/startGame", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: gameId,
+			});
+		}
+	};
+
 	const handleColorSelect = (color: string) => {
 		if (connected && stompClientMap.current) {
 			stompClientMap.current.publish({
@@ -273,25 +314,24 @@ const GameComponent: React.FC = () => {
 		}
 	}, [onTaskField]);
 
-	const startMeeting=()=>{
+	const startMeeting = () => {
 		if (connected && stompClientMeeting.current && !startEmergencyMeeting) {
 			setStartMeeting(true);
 			stompClientMeeting.current.publish({
 				destination: "/app/meeting/startMeeting",
-				body: JSON.stringify({ gameId}),
-			})
+				body: JSON.stringify({ gameId }),
+			});
 		}
-	  }
-	const endMeeting=()=>{
+	};
+	const endMeeting = () => {
 		if (connected && stompClientMeeting.current && startEmergencyMeeting) {
 			setStartMeeting(false);
 			stompClientMeeting.current.publish({
 				destination: "/app/meeting/endMeeting",
-				body: JSON.stringify({gameId}),
-			})
-			
+				body: JSON.stringify({ gameId }),
+			});
 		}
-	}
+	};
 	const use = () => {
 		const task = tasks.find(
 			(obj) =>
@@ -365,7 +405,6 @@ const GameComponent: React.FC = () => {
 		}
 	}, [onMeetingField]);
 
-
 	return (
 		<div className="container">
 			<div>
@@ -376,7 +415,10 @@ const GameComponent: React.FC = () => {
 					width={mapWidth}
 					walls={walls}
 					tasks={tasks}
-          			meeting={{ x: meetingPosition?.x ?? 0, y: meetingPosition?.y ?? 0 }}
+					meeting={{
+						x: meetingPosition?.x ?? 0,
+						y: meetingPosition?.y ?? 0,
+					}}
 					stateOfTasks={stateOfTasks}
 					name={name}
 				/>
@@ -420,45 +462,50 @@ const GameComponent: React.FC = () => {
 					/>
 				</Popup>
 
-        <Popup 
-          isOpen={startEmergencyMeeting}
-          onClose={endMeeting}>
-          <h1>EMERGENCY MEETING</h1>
-            {/*<EmergencyMeeting
+				<Popup isOpen={startEmergencyMeeting} onClose={endMeeting}>
+					<h1>EMERGENCY MEETING</h1>
+					{/*<EmergencyMeeting
             lobbyId={GameId}
 						name={name}
         />*/}
-        </Popup>
+				</Popup>
 
-        <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
-            <InGameButton
-                onClick={startMeeting}
-                label="Meeting"
-                active={onMeetingField}
-            />
-            <InGameButton
-                onClick={use}
-                label="Use"
-                active={useEnabled}
-            />
-           
-				<h1>GameID: {gameId}</h1>
-
-        <ButtonComponent onClick={togglePopup} label="Choose color" />
-				<ChooseColorPopup
-					isOpen={isOpen}
-					onClose={togglePopup}
-					onColorSelect={handleColorSelect}
-				/>
-        </div>
-        <div className="flex justify-end">
-				
+				<div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+					{isRunning ? (
+						<>
+							<InGameButton
+								onClick={startMeeting}
+								label="Meeting"
+								active={onMeetingField}
+							/>
+							<InGameButton
+								onClick={use}
+								label="Use"
+								active={useEnabled}
+							/>
+						</>
+					) : (
+						<>
+							<InGameButton
+								onClick={startGameFunction}
+								label="start Game"
+								active={true}
+							/>
+							<h1>GameID: {gameId}</h1>
+							<ButtonComponent
+								onClick={togglePopup}
+								label="Choose color"
+							/>
+							<ChooseColorPopup
+								isOpen={isOpen}
+								onClose={togglePopup}
+								onColorSelect={handleColorSelect}
+							/>
+						</>
+					)}
+				</div>
+				<div className="flex justify-end"></div>
 			</div>
-				
-      
-			</div>
-
-			
 		</div>
 	);
 };
