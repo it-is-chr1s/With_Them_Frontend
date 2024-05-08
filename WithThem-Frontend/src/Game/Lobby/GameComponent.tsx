@@ -177,7 +177,15 @@ const GameComponent: React.FC = () => {
             name +
             "/controlsEnabled/emergencyMeeting",
           (message) => {
-            setOnMeetingField(message.body === "true");
+            if (message.body === "true") {
+              console.log("uslo");
+              fetch(`http://localhost:4002/meeting/${gameId}/startable`)
+                .then((response) => response.json())
+                .then((data) => setOnMeetingField(data))
+                .catch((error) =>
+                  console.error("Error fetching startable:", error)
+                );
+            }
           }
         );
 
@@ -229,12 +237,41 @@ const GameComponent: React.FC = () => {
 
     stompClientMap.current.activate();
 
+    stompClientMeeting.current = new Client({
+      brokerURL: "ws://localhost:4002/ws",
+      onConnect: () => {
+        console.log("Connected to emergency meeting websocket");
+
+        stompClientMeeting.current?.subscribe(
+          "/topic/meeting/" + GameId + "/running",
+          (message) => {
+            setStartMeeting(JSON.parse(message.body));
+          }
+        );
+      },
+      onDisconnect: () => {},
+      onWebSocketError: (error: Event) => {
+        console.error("Error with Emergency Meeting websocket", error);
+      },
+      onStompError: (frame: any) => {
+        console.error(
+          "Broker reported error in Emergency Meeting: " +
+            frame.headers["message"]
+        );
+        console.error("Additional details: " + frame.body);
+      },
+    });
+    stompClientMeeting.current.activate();
+
     return () => {
       if (stompClientMap.current) {
         stompClientMap.current.deactivate();
       }
       if (stompClientTasks.current) {
         stompClientTasks.current.deactivate();
+      }
+      if (stompClientMeeting.current) {
+        stompClientMeeting.current.deactivate();
       }
     };
   }, [name]);
@@ -316,21 +353,20 @@ const GameComponent: React.FC = () => {
 
   const startMeeting = () => {
     if (connected && stompClientMeeting.current && !startEmergencyMeeting) {
-      setStartMeeting(true);
       stompClientMeeting.current.publish({
         destination: "/app/meeting/startMeeting",
-        body: JSON.stringify({ gameId }),
+        body: gameId,
       });
     }
   };
   const endMeeting = () => {
     if (connected && stompClientMeeting.current && startEmergencyMeeting) {
-      setStartMeeting(false);
       stompClientMeeting.current.publish({
         destination: "/app/meeting/endMeeting",
-        body: JSON.stringify({ gameId }),
+        body: gameId,
       });
     }
+    setOnMeetingField(false);
   };
   const use = () => {
     const task = tasks.find(
@@ -463,7 +499,7 @@ const GameComponent: React.FC = () => {
           <h1>EMERGENCY MEETING</h1>
           {/*<EmergencyMeeting
             lobbyId={GameId}
-						name={name}
+			name={name}
         />*/}
         </Popup>
         <Popup
