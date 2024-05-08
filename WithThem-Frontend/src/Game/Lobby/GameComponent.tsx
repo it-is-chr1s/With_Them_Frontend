@@ -185,6 +185,8 @@ const GameComponent: React.FC = () => {
                 .catch((error) =>
                   console.error("Error fetching startable:", error)
                 );
+            } else {
+              setOnMeetingField(false);
             }
           }
         );
