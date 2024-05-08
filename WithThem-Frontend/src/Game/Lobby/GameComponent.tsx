@@ -140,7 +140,13 @@ const GameComponent: React.FC = () => {
 						name +
 						"/controlsEnabled/emergencyMeeting",
 					(message) => {
-						setOnMeetingField(message.body === "true");
+						if(message.body==="true"){
+							console.log("uslo")
+							fetch(`http://localhost:4002/meeting/${gameId}/startable`)
+      						.then(response => response.json())
+							.then(data => setOnMeetingField(data))
+      						.catch(error => console.error('Error fetching startable:', error));
+						}
 					}
 				);
 
@@ -184,7 +190,6 @@ const GameComponent: React.FC = () => {
 				stompClientMeeting.current?.subscribe(
 					"/topic/meeting/" + GameId + "/running",
 					(message) => {
-						console.log("Startable:" + GameId + "\n", JSON.parse(message.body));
 						setStartMeeting(JSON.parse(message.body));
 					}
 				);
@@ -279,9 +284,9 @@ const GameComponent: React.FC = () => {
 			stompClientMeeting.current.publish({
 				destination: "/app/meeting/endMeeting",
 				body: gameId,
-			})
-			
+			})	
 		}
+		setOnMeetingField(false);
 	}
 	const use = () => {
 		const task = tasks.find(
