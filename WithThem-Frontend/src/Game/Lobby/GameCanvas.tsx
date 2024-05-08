@@ -107,14 +107,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         );
       });
 
+      console.log("meeting position: ", meeting.x, meeting.y);
+
       //Draw meeting
       context.fillStyle = "red";
-      context.fillRect(
-        meeting.x * cellSize + cellSize / 2,
-        meeting.y * cellSize + cellSize / 2,
-        cellSize,
-        cellSize
-      );
+
+      if (meeting.x != -1 && meeting.y != -1) {
+        context.fillRect(
+          meeting.x * cellSize + cellSize / 2,
+          meeting.y * cellSize + cellSize / 2,
+          cellSize,
+          cellSize
+        );
+      }
 
       // Draw tasks
       tasks.forEach((task) => {
