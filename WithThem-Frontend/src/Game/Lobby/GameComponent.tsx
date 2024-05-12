@@ -9,6 +9,7 @@ import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
+import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -497,14 +498,13 @@ const GameComponent: React.FC = () => {
           />
         </Popup>
 
-        <Popup isOpen={startEmergencyMeeting} onClose={endMeeting}>
-          <h1>EMERGENCY MEETING</h1>
-          {/*<EmergencyMeeting
-            lobbyId={GameId}
-			name={name}
-        />*/}
-        </Popup>
-        <Popup
+		<EmergencyMeetingPopup
+		isOpen={startEmergencyMeeting}
+		onClose={endMeeting}
+		gameId={gameId}
+		name={name}/>
+        
+		<Popup
           isOpen={roleWon != null}
           onClose={() => {
             setRoleWon(null);
