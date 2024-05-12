@@ -18,6 +18,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
 	const [deadPlayers, setDeadPlayers] = useState<string[]>([]);
 
 	const startVoting = () => {
+        
         console.log("Uslo");
         fetch(`http://localhost:4000/game/${gameId}/players`)
             .then(response => response.json())
@@ -27,8 +28,19 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
             })
             .catch(error => console.error('Error fetching players:', error));
         
-        };
+    };
+    useEffect(() => {
+        if(isOpen){
+            fetch(`http://localhost:4000/game/${gameId}/players`)
+            .then(response => response.json())
+            .then(data => {
+                setAlivePlayers(data.alive);
+                setDeadPlayers(data.dead);
+            })
+            .catch(error => console.error('Error fetching players:', error));
+        }
 
+    }, [isOpen]);
    
 	return (
 		<Popup isOpen={isOpen} onClose={onClose}>

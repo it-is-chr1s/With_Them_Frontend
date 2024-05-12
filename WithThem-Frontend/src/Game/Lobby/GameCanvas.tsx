@@ -107,8 +107,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         );
       });
 
-      console.log("meeting position: ", meeting.x, meeting.y);
-
       //Draw meeting
       context.fillStyle = "red";
 

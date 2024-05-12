@@ -179,7 +179,6 @@ const GameComponent: React.FC = () => {
             "/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
-              console.log("uslo");
               fetch(`http://localhost:4002/meeting/${gameId}/startable`)
                 .then((response) => response.json())
                 .then((data) => setOnMeetingField(data))
