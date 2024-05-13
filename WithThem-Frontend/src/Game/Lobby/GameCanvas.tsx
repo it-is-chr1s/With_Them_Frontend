@@ -20,16 +20,12 @@ interface TaskPosition {
   id: number;
 }
 
-interface StateOfTasks {
-  [id: number]: string;
-}
-
 interface GameCanvasProps {
   players: Map<string, PlayerPositionAndColor>;
   walls: Position[];
   tasks: TaskPosition[];
   meeting: Position;
-  stateOfTasks: StateOfTasks;
+  stateOfTasks: any;
   height: number;
   width: number;
   name: string;
@@ -123,10 +119,16 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // Draw tasks
       tasks.forEach((task) => {
-        if (task.id in stateOfTasks) {
-          if (stateOfTasks[task.id] === "available") {
+        let task_index = -1;
+        for (let i = 0; i < stateOfTasks.length; i++){
+          if(stateOfTasks[i].id == task.id){
+            task_index = i;
+          }
+        }
+        if (task_index != -1) {
+          if (stateOfTasks[task_index].state === "available") {
             context.fillStyle = "red";
-          } else if (stateOfTasks[task.id] === "active") {
+          } else if (stateOfTasks[task_index].state === "active") {
             context.fillStyle = "rgb(255, 109, 31)";
           }
         } else {

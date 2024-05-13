@@ -329,14 +329,20 @@ const GameComponent: React.FC = () => {
           obj.x === Math.floor(players.get(name).x) &&
           obj.y === Math.floor(players.get(name).y)
       );
-      if (task != null && task.id in stateOfTasks) {
-        if (stateOfTasks[task.id] === "available") {
+      let task_index = -1;
+        for(let i = 0; i < stateOfTasks.length; i++){
+          if(task?.id == stateOfTasks[i].id){
+            task_index = i;
+          }
+        }
+      if (task != null && task_index != -1) {
+        if (stateOfTasks[task_index].state === "available") {
           if (currentTask == null && task.taskType != "File Upload") {
             setUseEnabled(onTaskField);
           } else {
             setUseEnabled(false);
           }
-        } else if (stateOfTasks[task.id] === "active") {
+        } else if (stateOfTasks[task_index].state === "active") {
           if (
             currentTask?.task === "FileDownloadUpload" &&
             currentTask.status === "Upload" &&
@@ -344,7 +350,7 @@ const GameComponent: React.FC = () => {
           ) {
             setUseEnabled(onTaskField);
           }
-        } else if (stateOfTasks[task.id] === "active") {
+        } else if (stateOfTasks[task_index].state === "active") {
           setUseEnabled(false);
         }
       } else {
