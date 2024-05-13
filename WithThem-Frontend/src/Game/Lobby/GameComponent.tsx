@@ -9,6 +9,7 @@ import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
+import TasksTodoList from "./Tasks/TasksTodoList";//
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -525,6 +526,11 @@ const GameComponent: React.FC = () => {
             {role == 1 ? "Imposter" : "Crewmate"}
           </h2>
         </Popup>
+        <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
+          {isRunning && (
+            <TasksTodoList stateOfTasks={stateOfTasks} />
+          )}
+        </div>
         <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
           {isRunning ? (
             <>
