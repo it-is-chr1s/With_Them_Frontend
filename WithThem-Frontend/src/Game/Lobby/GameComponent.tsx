@@ -9,6 +9,7 @@ import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
+import TasksTodoList from "./Tasks/TasksTodoList";//
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -329,14 +330,20 @@ const GameComponent: React.FC = () => {
           obj.x === Math.floor(players.get(name).x) &&
           obj.y === Math.floor(players.get(name).y)
       );
-      if (task != null && task.id in stateOfTasks) {
-        if (stateOfTasks[task.id] === "available") {
+      let task_index = -1;
+        for(let i = 0; i < stateOfTasks.length; i++){
+          if(task?.id == stateOfTasks[i].id){
+            task_index = i;
+          }
+        }
+      if (task != null && task_index != -1) {
+        if (stateOfTasks[task_index].state === "available") {
           if (currentTask == null && task.taskType != "File Upload") {
             setUseEnabled(onTaskField);
           } else {
             setUseEnabled(false);
           }
-        } else if (stateOfTasks[task.id] === "active") {
+        } else if (stateOfTasks[task_index].state === "active") {
           if (
             currentTask?.task === "FileDownloadUpload" &&
             currentTask.status === "Upload" &&
@@ -344,7 +351,7 @@ const GameComponent: React.FC = () => {
           ) {
             setUseEnabled(onTaskField);
           }
-        } else if (stateOfTasks[task.id] === "active") {
+        } else if (stateOfTasks[task_index].state === "active") {
           setUseEnabled(false);
         }
       } else {
@@ -519,6 +526,11 @@ const GameComponent: React.FC = () => {
             {role == 1 ? "Imposter" : "Crewmate"}
           </h2>
         </Popup>
+        <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
+          {isRunning && (
+            <TasksTodoList stateOfTasks={stateOfTasks} />
+          )}
+        </div>
         <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
           {isRunning ? (
             <>
