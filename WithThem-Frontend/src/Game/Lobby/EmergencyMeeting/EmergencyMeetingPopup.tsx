@@ -18,6 +18,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     const [deadPlayers, setDeadPlayers] = useState<string[]>([]);
     const [votingActive, setVotingActive] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<string>("");
+    const [suspect, setSuspect] = useState<string | null>(null);
 
     useEffect(() => {
         let timeout: ReturnType<typeof setTimeout>;
@@ -25,7 +26,8 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
         if (isOpen) {
             timeout = setTimeout(() => {
                 setVotingActive(true);
-            }, 5000); // 30 seconds
+                startVoting();
+            }, 5000); // 5 seconds
             fetch(`http://localhost:4000/game/${gameId}/players`)
                 .then(response => response.json())
                 .then(data => {
@@ -44,34 +46,69 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     }, [isOpen, gameId]);
 
     const startVoting = () => {
-        // Implement your voting logic here
+        let timeout: ReturnType<typeof setTimeout>;
+        timeout = setTimeout(() => {
+            if(suspect===null){
+                setVotingActive(false);
+                fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to vote');
+                    }
+                    return response.text();
+                })
+                .then((data) => setSuspect(data))
+                .catch((error) =>
+                  console.error("Error fetching startable:", error)
+                );            }
+        }, 60000); // 60 seconds
+        return () => {
+            clearTimeout(timeout);
+        };
     };
 
     const vote = () => {
-        console.log("my name:"+name);
-        console.log("selected player:"+selectedPlayer);
+        console.log("suspect begin" + suspect);
+        console.log("my name:" + name);
+        console.log("selected player:" + selectedPlayer);
         setVotingActive(false);
-
+    
         // Send POST request with the voter's name and the selected player's name
-        /*if (selectedPlayer) {
-            fetch(`http://localhost:4000/game/${gameId}/vote`, {
+        if (selectedPlayer) {
+            fetch(`http://localhost:4002/meeting/vote`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    gameId: gameId,
                     voter: name,
-                    votedFor: selectedPlayer,
+                    nominated: selectedPlayer
                 }),
             })
             .then(response => {
-                // Handle response
+                if (!response.ok) {
+                    throw new Error('Failed to vote');
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Handle response and update state if necessary
+                if (data !== null) {
+                    console.log("SUSPECT:" + data);
+                    setSuspect(data);
+                } else {
+                    // Handle case when response is null (no content)
+                    console.log("No suspect received from the server.");
+                    setSuspect(null); // Or handle in another way as per your requirement
+                }
             })
             .catch(error => {
                 console.error('Error casting vote:', error);
             });
-        }*/
+        }
     };
+    
 
     return (
         <Popup isOpen={isOpen} onClose={onClose}>
