@@ -46,22 +46,40 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     }, [isOpen, gameId]);
 
     const startVoting = () => {
+        fetch(`http://localhost:4002/meeting/startVoting`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json',},
+            body: gameId,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to start voting');
+            }
+            // Handle success if needed
+        })
+        .catch(error => {
+            console.error('Error start voting:', error);
+        });
+
         let timeout: ReturnType<typeof setTimeout>;
         timeout = setTimeout(() => {
-            if(suspect===null){
                 setVotingActive(false);
                 fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error('Failed to vote');
+                        throw new Error('Failed to catch a suspect');
                     }
                     return response.text();
                 })
-                .then((data) => setSuspect(data))
+                .then((data) => {
+                    console.log("Suspect:", data);
+                    setSuspect(data);
+                })
                 .catch((error) =>
-                  console.error("Error fetching startable:", error)
-                );            }
-        }, 60000); // 60 seconds
+                    console.error("Error fetching suspect:", error)
+                );
+                    
+        }, 45000); // 45 seconds
         return () => {
             clearTimeout(timeout);
         };
@@ -94,13 +112,13 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
             })
             .then(data => {
                 // Handle response and update state if necessary
-                if (data !== null) {
+                if (data !== "" ) {
                     console.log("SUSPECT:" + data);
-                    setSuspect(data);
+                    //setSuspect(data);
                 } else {
                     // Handle case when response is null (no content)
                     console.log("No suspect received from the server.");
-                    setSuspect(null); // Or handle in another way as per your requirement
+                    //setSuspect(null); // Or handle in another way as per your requirement
                 }
             })
             .catch(error => {

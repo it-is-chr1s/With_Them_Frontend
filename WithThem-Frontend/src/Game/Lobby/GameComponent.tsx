@@ -57,7 +57,6 @@ const GameComponent: React.FC = () => {
         stompClientMeeting.current?.subscribe(
           "/topic/meeting/" + GameId + "/running",
           (message) => {
-            console.log("Startable:" + GameId + "\n", JSON.parse(message.body));
             setStartMeeting(JSON.parse(message.body));
           }
         );
@@ -239,31 +238,6 @@ const GameComponent: React.FC = () => {
 
     stompClientMap.current.activate();
 
-    stompClientMeeting.current = new Client({
-      brokerURL: "ws://localhost:4002/ws",
-      onConnect: () => {
-        console.log("Connected to emergency meeting websocket");
-
-        stompClientMeeting.current?.subscribe(
-          "/topic/meeting/" + GameId + "/running",
-          (message) => {
-            setStartMeeting(JSON.parse(message.body));
-          }
-        );
-      },
-      onDisconnect: () => {},
-      onWebSocketError: (error: Event) => {
-        console.error("Error with Emergency Meeting websocket", error);
-      },
-      onStompError: (frame: any) => {
-        console.error(
-          "Broker reported error in Emergency Meeting: " +
-            frame.headers["message"]
-        );
-        console.error("Additional details: " + frame.body);
-      },
-    });
-    stompClientMeeting.current.activate();
 
     return () => {
       if (stompClientMap.current) {
