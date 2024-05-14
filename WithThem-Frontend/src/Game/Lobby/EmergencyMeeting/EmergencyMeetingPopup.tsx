@@ -63,22 +63,20 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
 
         let timeout: ReturnType<typeof setTimeout>;
         timeout = setTimeout(() => {
-                setVotingActive(false);
-                fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Failed to catch a suspect');
-                    }
-                    return response.text();
-                })
-                .then((data) => {
-                    console.log("Suspect:", data);
-                    setSuspect(data);
-                })
-                .catch((error) =>
-                    console.error("Error fetching suspect:", error)
-                );
-                    
+                if(votingActive)setVotingActive(false);
+                if(suspect===""){
+                    fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
+                    .then((response) => {
+                        if (!response.ok) {throw new Error('Failed to catch a suspect');}
+                        console.log("suspect"+response)
+                        return response.text();
+                    })
+                    .then((data) => setSuspect(data))
+                    .catch((error) =>
+                      console.error("Error fetching suspect:", error)
+                    );     
+                }
+                       
         }, 45000); // 45 seconds
         return () => {
             clearTimeout(timeout);

@@ -47,7 +47,7 @@ const GameComponent: React.FC = () => {
   const [startGame, setStartGame] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [roleWon, setRoleWon] = useState(undefined);
-
+  const [suspect, setSuspect]=useState<string | null>("");
   useEffect(() => {
     stompClientMeeting.current = new Client({
       brokerURL: "ws://localhost:4002/ws",
@@ -60,6 +60,13 @@ const GameComponent: React.FC = () => {
             setStartMeeting(JSON.parse(message.body));
           }
         );
+		stompClientMeeting.current?.subscribe(
+			"/topic/meeting/" + GameId + "/suspect",
+			(message) => {
+			console.log("Suspect in subscribe"+(message.body))
+			setSuspect((message.body));
+			}
+		  );
 
         stompClientMeeting.current?.publish({
           destination: "/app/meeting/startMeeting",
@@ -335,15 +342,21 @@ const GameComponent: React.FC = () => {
       });
     }
   };
+  
   const endMeeting = () => {
-    if (connected && stompClientMeeting.current && startEmergencyMeeting) {
-      stompClientMeeting.current.publish({
-        destination: "/app/meeting/endMeeting",
-        body: gameId,
-      });
-    }
-    setOnMeetingField(false);
+	if(suspect===null){
+		setSuspect("");
+		if (connected && stompClientMeeting.current && startEmergencyMeeting) {
+			stompClientMeeting.current.publish({
+			  destination: "/app/meeting/endMeeting",
+			  body: gameId,
+			});
+		  }
+		setOnMeetingField(false);
+	}
   };
+
+  
   const use = () => {
     const task = tasks.find(
       (obj) =>
@@ -385,6 +398,10 @@ const GameComponent: React.FC = () => {
       }),
     });
   };
+
+  const closeSuspect = () => {
+	setSuspect(null);
+ }
 
   useEffect(() => {
     if (players.get(name) != undefined) {
@@ -476,7 +493,10 @@ const GameComponent: React.FC = () => {
 		onClose={endMeeting}
 		gameId={gameId}
 		name={name}/>
-        
+
+        <Popup isOpen={(suspect!=="" && suspect!==null)} onClose={closeSuspect}>
+		<h2 className="font-mono font-bold text-xl mb-6">{suspect}</h2>
+		</Popup>
 		<Popup
           isOpen={roleWon != null}
           onClose={() => {
