@@ -48,6 +48,7 @@ const GameComponent: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [roleWon, setRoleWon] = useState(undefined);
   const [suspect, setSuspect]=useState<string | null>("");
+  const [suspectRoll, setSuspectRoll]=useState<string | null>("");
   useEffect(() => {
     stompClientMeeting.current = new Client({
       brokerURL: "ws://localhost:4002/ws",
@@ -67,16 +68,6 @@ const GameComponent: React.FC = () => {
 			setSuspect((message.body));
 			}
 		  );
-
-        stompClientMeeting.current?.publish({
-          destination: "/app/meeting/startMeeting",
-          body: gameId,
-        });
-
-        stompClientMeeting.current?.publish({
-          destination: "/app/meeting/endMeeting",
-          body: gameId,
-        });
       },
       onDisconnect: () => {},
       onWebSocketError: (error: Event) => {
@@ -154,7 +145,13 @@ const GameComponent: React.FC = () => {
             setMapWidth(mapDetails.width);
           }
         );
-
+		stompClientMeeting.current?.subscribe(
+			"/topic/" + gameId + "/kickedOutRoll",
+			(message) => {
+			console.log("Kicked out suspect subscribe: "+(message.body))
+			setSuspectRoll((message.body));
+			}
+		  );
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/position",
           (message) => {
@@ -346,6 +343,7 @@ const GameComponent: React.FC = () => {
   const endMeeting = () => {
 	if(suspect===null){
 		setSuspect("");
+		setSuspectRoll("");
 		if (connected && stompClientMeeting.current && startEmergencyMeeting) {
 			stompClientMeeting.current.publish({
 			  destination: "/app/meeting/endMeeting",
@@ -401,6 +399,7 @@ const GameComponent: React.FC = () => {
 
   const closeSuspect = () => {
 	setSuspect(null);
+	setSuspectRoll(null);
  }
 
   useEffect(() => {
@@ -495,6 +494,8 @@ const GameComponent: React.FC = () => {
 		name={name}/>
 
         <Popup isOpen={(suspect!=="" && suspect!==null)} onClose={closeSuspect}>
+		<h2 className="font-mono font-bold text-xl mb-6">Kicked Out:</h2>
+		<h2 className="font-mono font-bold text-xl mb-6">{suspectRoll}</h2>
 		<h2 className="font-mono font-bold text-xl mb-6">{suspect}</h2>
 		</Popup>
 		<Popup
