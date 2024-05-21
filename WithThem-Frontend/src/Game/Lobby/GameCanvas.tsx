@@ -6,6 +6,8 @@ interface PlayerPositionAndColor {
   y: number;
   color: string;
   isAlive: boolean;
+  deathX: number;
+  deathY: number;
 }
 
 interface Position {
@@ -79,20 +81,35 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       // Draw map borders
       context.fillStyle = "black";
       for (let x = -13; x < width + 13; x++) {
-        for(let i = 0; i < 10; i++){
+        for (let i = 0; i < 10; i++) {
           context.fillRect(
             x * cellSize,
-            - (1 + i) * cellSize,
+            -(1 + i) * cellSize,
             cellSize,
             cellSize
           );
-          context.fillRect(x * cellSize, (height + i) * cellSize, cellSize, cellSize);
+          context.fillRect(
+            x * cellSize,
+            (height + i) * cellSize,
+            cellSize,
+            cellSize
+          );
         }
       }
       for (let y = 0; y < height; y++) {
-        for(let i = 0; i < 13; i++){
-          context.fillRect((1 + i) * -cellSize, y * cellSize, cellSize, cellSize);
-          context.fillRect((width + i) * cellSize, y * cellSize, cellSize, cellSize);
+        for (let i = 0; i < 13; i++) {
+          context.fillRect(
+            (1 + i) * -cellSize,
+            y * cellSize,
+            cellSize,
+            cellSize
+          );
+          context.fillRect(
+            (width + i) * cellSize,
+            y * cellSize,
+            cellSize,
+            cellSize
+          );
         }
       }
 
@@ -124,8 +141,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       // Draw tasks
       tasks.forEach((task) => {
         let task_index = -1;
-        for (let i = 0; i < stateOfTasks.length; i++){
-          if(stateOfTasks[i].id == task.id){
+        for (let i = 0; i < stateOfTasks.length; i++) {
+          if (stateOfTasks[i].id == task.id) {
             task_index = i;
           }
         }
@@ -183,24 +200,60 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       // Draw players
       players.forEach((position, playerId) => {
         console.log("player position: ", position.x, position.y);
+        const currentPlayer = players.get(name);
+        const isCurrentPlayer = playerId === name;
+
         context.fillStyle = position.color;
-        if (!position.isAlive) {
-          context.fillStyle = "black";
+        if (
+          position.isAlive ||
+          isCurrentPlayer ||
+          (currentPlayer && !currentPlayer.isAlive && !position.isAlive)
+        ) {
+          context.beginPath();
+          context.arc(
+            position.x * cellSize,
+            position.y * cellSize,
+            10,
+            0,
+            2 * Math.PI
+          );
+          context.font = "8px Arial";
+          context.fillText(
+            playerId,
+            position.x * cellSize,
+            (position.y - 0.5) * cellSize
+          );
+          context.fill();
         }
-        context.beginPath();
-        context.arc(
-          position.x * cellSize,
-          position.y * cellSize,
-          10,
-          0,
-          2 * Math.PI
-        );
-        context.font = "8px Arial";
-        context.fillText(
-          playerId,
-          (position.x) * cellSize,
-          (position.y - 0.5) * cellSize
-        );
+        if (!position.isAlive) {
+          context.strokeStyle = position.color;
+          context.beginPath();
+          context.lineWidth = 3;
+          context.moveTo(
+            position.deathX * cellSize - cellSize / 4,
+            position.deathY * cellSize - cellSize / 4
+          );
+          context.lineTo(
+            position.deathX * cellSize + cellSize / 4,
+            position.deathY * cellSize + cellSize / 4
+          );
+          context.moveTo(
+            position.deathX * cellSize + cellSize / 4,
+            position.deathY * cellSize - cellSize / 4
+          );
+          context.lineTo(
+            position.deathX * cellSize - cellSize / 4,
+            position.deathY * cellSize + cellSize / 4
+          );
+          context.stroke();
+          context.font = "8px Arial";
+          context.fillText(
+            playerId,
+            position.deathX * cellSize,
+            (position.deathY - 0.5) * cellSize
+          );
+        }
+
         context.fill();
       });
 
