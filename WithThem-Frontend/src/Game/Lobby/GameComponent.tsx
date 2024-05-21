@@ -146,13 +146,7 @@ const GameComponent: React.FC = () => {
             setMapWidth(mapDetails.width);
           }
         );
-		stompClientMeeting.current?.subscribe(
-			"/topic/" + gameId + "/kickedOutRoll",
-			(message) => {
-			console.log("Kicked out suspect subscribe: "+(message.body))
-			setSuspectRoll((message.body));
-			}
-		  );
+		
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/position",
           (message) => {
@@ -214,6 +208,7 @@ const GameComponent: React.FC = () => {
             setStartGame(false);
           }
         );
+		
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/gameOver",
           (message) => {
@@ -228,6 +223,13 @@ const GameComponent: React.FC = () => {
           destination: "/app/requestMap",
           body: JSON.stringify({ gameId: gameId }),
         });
+		stompClientMeeting.current?.subscribe(
+			"/topic/" + gameId + "/kickedOutRoll",
+			(message) => {
+			console.log("Kicked out suspect subscribe: "+(message.body))
+			setSuspectRoll((message.body));
+			}
+		  );
       },
       onDisconnect: () => {
         setConnected(false);
