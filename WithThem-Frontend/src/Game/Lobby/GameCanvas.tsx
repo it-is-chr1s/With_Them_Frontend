@@ -77,19 +77,23 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
       );
 
       // Draw map borders
-      context.fillStyle = "#000";
-      for (let x = 0; x <= width; x++) {
-        context.fillRect(
-          x * cellSize - cellSize,
-          -cellSize,
-          cellSize + cellSize,
-          cellSize
-        );
-        context.fillRect(x * cellSize, height * cellSize, cellSize, cellSize);
+      context.fillStyle = "black";
+      for (let x = -13; x < width + 13; x++) {
+        for(let i = 0; i < 10; i++){
+          context.fillRect(
+            x * cellSize,
+            - (1 + i) * cellSize,
+            cellSize,
+            cellSize
+          );
+          context.fillRect(x * cellSize, (height + i) * cellSize, cellSize, cellSize);
+        }
       }
-      for (let y = 0; y <= height; y++) {
-        context.fillRect(-cellSize, y * cellSize, cellSize, cellSize);
-        context.fillRect(width * cellSize, y * cellSize, cellSize, cellSize);
+      for (let y = 0; y < height; y++) {
+        for(let i = 0; i < 13; i++){
+          context.fillRect((1 + i) * -cellSize, y * cellSize, cellSize, cellSize);
+          context.fillRect((width + i) * cellSize, y * cellSize, cellSize, cellSize);
+        }
       }
 
       // Draw walls
