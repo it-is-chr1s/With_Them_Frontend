@@ -32,7 +32,17 @@ const GameComponent: React.FC = () => {
   const stompClientTasks = useRef<Client | null>(null);
   const stompClientMeeting = useRef<Client | null>(null);
   const [players, setPlayers] = useState<
-    Map<string, { x: number; y: number; color: string; isAlive: boolean }>
+    Map<
+      string,
+      {
+        x: number;
+        y: number;
+        color: string;
+        isAlive: boolean;
+        deathX: number;
+        deathY: number;
+      }
+    >
   >(new Map());
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
@@ -151,14 +161,19 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/position",
           (message) => {
             const positionUpdate = JSON.parse(message.body);
+
+            console.log("positionupdate: ", positionUpdate);
             setPlayers((prevPlayers) =>
               new Map(prevPlayers).set(positionUpdate.playerId, {
                 x: positionUpdate.position.x,
                 y: positionUpdate.position.y,
                 color: positionUpdate._color,
                 isAlive: positionUpdate.alive,
+                deathX: positionUpdate.deathPosition.x,
+                deathY: positionUpdate.deathPosition.y,
               })
             );
+            console.log("players: ", players);
           }
         );
 
@@ -311,11 +326,11 @@ const GameComponent: React.FC = () => {
           obj.y === Math.floor(players.get(name).y)
       );
       let task_index = -1;
-        for(let i = 0; i < stateOfTasks.length; i++){
-          if(task?.id == stateOfTasks[i].id){
-            task_index = i;
-          }
+      for (let i = 0; i < stateOfTasks.length; i++) {
+        if (task?.id == stateOfTasks[i].id) {
+          task_index = i;
         }
+      }
       if (task != null && task_index != -1) {
         if (stateOfTasks[task_index].state === "available") {
           if (currentTask == null && task.taskType != "File Upload") {
@@ -523,9 +538,7 @@ const GameComponent: React.FC = () => {
           </h2>
         </Popup>
         <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
-          {isRunning && (
-            <TasksTodoList stateOfTasks={stateOfTasks} />
-          )}
+          {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
         <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
           {isRunning ? (
