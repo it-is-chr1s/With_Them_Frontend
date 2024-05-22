@@ -46,6 +46,7 @@ const GameComponent: React.FC = () => {
   >(new Map());
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
+  const [onCorpes, setOnCorpes] = useState<boolean>(false);
   const [meetingPosition, setMeetingPosition] = useState();
   const [onTaskField, setOnTaskField] = useState<boolean>(false);
   const [walls, setWalls] = useState([]);
@@ -185,11 +186,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" +
-            gameId +
-            "/player/" +
-            name +
-            "/controlsEnabled/emergencyMeeting",
+          "/topic/" +gameId + "/player/" + name +"/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
               fetch(`http://localhost:4002/meeting/${gameId}/startable`)
@@ -200,6 +197,19 @@ const GameComponent: React.FC = () => {
                 );
             } else {
               setOnMeetingField(false);
+            }
+          }
+        );
+
+        stompClientMap.current?.subscribe(
+          "/topic/" +gameId + "/player/" + name + "/controlsEnabled/emergencyMeetingReport",
+          (message) => {
+            if (message.body === "true") {
+              console.log("CORPES"+true);
+              setOnCorpes(true)
+            } else {
+              console.log("CORPES"+false);
+              setOnCorpes(false);
             }
           }
         );
@@ -548,7 +558,7 @@ const GameComponent: React.FC = () => {
               <InGameButton
                 onClick={startMeeting}
                 label="Meeting"
-                active={onMeetingField}
+                active={onMeetingField || onCorpes}
               />
               <InGameButton onClick={use} label="Use" active={useEnabled} />
               {role == 1 && (
