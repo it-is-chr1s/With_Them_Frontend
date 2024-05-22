@@ -11,6 +11,7 @@ import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
 import TasksTodoList from "./Tasks/TasksTodoList"; //
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
+import Settings from "./Settings";
 
 const GameComponent: React.FC = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -631,7 +632,7 @@ const GameComponent: React.FC = () => {
 						</>
 					)}
 				</div>
-				<div className="flex justify-end"></div>
+				{!isRunning && <Settings gameId={gameId} name={name} />}
 			</div>
 		</div>
 	);
