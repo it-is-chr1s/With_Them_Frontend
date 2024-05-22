@@ -207,6 +207,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           isCurrentPlayer ||
           (currentPlayer && !currentPlayer.isAlive && !position.isAlive)
         ) {
+          if (!position.isAlive) {
+            context.fillStyle = "gray";
+          }
           context.beginPath();
           context.arc(
             position.x * cellSize,
@@ -215,6 +218,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
             0,
             2 * Math.PI
           );
+          context.fill();
           context.font = "8px Arial";
           context.fillText(
             playerId,
