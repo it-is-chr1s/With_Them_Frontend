@@ -18,7 +18,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     const [deadPlayers, setDeadPlayers] = useState<string[]>([]);
     const [votingActive, setVotingActive] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<string>("");
-    const [suspect, setSuspect] = useState<string | null>(null);
+    const isAlive = !deadPlayers.includes(name);
 
     useEffect(() => {
         let timeout: ReturnType<typeof setTimeout>;
@@ -64,18 +64,18 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
         let timeout: ReturnType<typeof setTimeout>;
         timeout = setTimeout(() => {
                 if(votingActive)setVotingActive(false);
-                if(suspect===""){
+                if(isOpen){
                     fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
                     .then((response) => {
                         if (!response.ok) {throw new Error('Failed to catch a suspect');}
-                        console.log("suspect"+response)
                         return response.text();
                     })
-                    .then((data) => setSuspect(data))
+                    .then((data) => console.log("data in after 45s suspect "+data))
                     .catch((error) =>
                       console.error("Error fetching suspect:", error)
-                    );     
-                }
+                    ); 
+                }    
+            
                        
         }, 45000); // 45 seconds
         return () => {
@@ -84,7 +84,6 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     };
 
     const vote = () => {
-        console.log("suspect begin" + suspect);
         console.log("my name:" + name);
         console.log("selected player:" + selectedPlayer);
         setVotingActive(false);
@@ -131,9 +130,11 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
             <div>
                 <h1 className="text-black text-3xl mb-8">Emergency Meeting</h1>
                 <h2 className="text-black text-xl mb-4">Alive:</h2>
-                {votingActive && (
+                {votingActive && isAlive && (
                     <h2 className="text-black text-xl mb-4">*select alive a player</h2>
-                )}                <div className="flex flex-wrap">
+                )}                
+                
+                <div className="flex flex-wrap">
                     {alivePlayers.map((player, index) => (
                         <div
                             key={index}
@@ -160,16 +161,19 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                     ))}
                 </div>
 
-                <button
-                    onClick={vote}
-                    type="button"
-                    disabled={!votingActive || !selectedPlayer}
-                    className={`block w-full py-2 ${
-                        votingActive && selectedPlayer ? 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-white font-bold' : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                        }`}
-                >
-                    Vote
-                </button>
+                {isAlive && (
+                     <button
+                     onClick={vote}
+                     type="button"
+                     disabled={!votingActive || !selectedPlayer}
+                     className={`block w-full py-2 ${
+                         votingActive && selectedPlayer ? 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-white font-bold' : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                         }`}
+                 >
+                     Vote
+                 </button>
+                )}
+               
             </div>
         </Popup>
     );

@@ -398,7 +398,7 @@ const GameComponent: React.FC = () => {
 	};
 
 	const endMeeting = () => {
-		if (suspect === null) {
+		if (suspect === null /*|| VotingEnded*/) {
 			setSuspect("");
 			setSuspectRoll("");
 			if (
