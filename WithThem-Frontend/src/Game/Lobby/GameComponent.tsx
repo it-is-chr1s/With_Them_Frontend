@@ -45,6 +45,9 @@ const GameComponent: React.FC = () => {
 			}
 		>
 	>(new Map());
+
+  const isPlayerAlive = players.get(name)?.isAlive || false;
+
 	const [useEnabled, setUseEnabled] = useState<boolean>(false);
 	const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
 	const [onCorpes, setOnCorpes] = useState<boolean>(false);
@@ -594,11 +597,11 @@ const GameComponent: React.FC = () => {
 						<>
 							{"Role: "}
 							{role == 1 ? "Imposter" : "Crewmate"}
-							<InGameButton
+							{isPlayerAlive && (<InGameButton
 								onClick={startMeeting}
 								label="Meeting"
 								active={onMeetingField || onCorpes}
-							/>
+							/>)}
 							<InGameButton
 								onClick={use}
 								label="Use"
