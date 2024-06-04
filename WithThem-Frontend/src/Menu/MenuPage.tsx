@@ -3,7 +3,6 @@ import ButtonComponent from "../components/ButtonComponent";
 import Layout from "../components/Layout";
 import NameInputPopup from "../components/NameInputPopup";
 
-
 const MenuPage = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -23,7 +22,11 @@ const MenuPage = () => {
         />
         <ButtonComponent onClick={togglePopup} label="Create New Lobby" />
         {/* Pass initialGameId as undefined when opening the popup for creating a new lobby */}
-        <NameInputPopup isOpen={isOpen} onClose={togglePopup} initialGameId={undefined} />
+        <NameInputPopup
+          isOpen={isOpen}
+          onClose={togglePopup}
+          initialGameId={undefined}
+        />
       </div>
     </Layout>
   );
