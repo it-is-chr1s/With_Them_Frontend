@@ -4,18 +4,20 @@ import Popup from './Popup';
 
 interface ChooseColorPopupProps {
     isOpen: boolean;
+    occupied: string[] | null;
     onClose: () => void;
-    onColorSelect: (color: string) => void; // New prop to pass selected color
-    //selectedColors:string[]
+    onColorSelect: (color: string) => void;
 }
 
-const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose, onColorSelect }) => {
+const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose, onColorSelect, occupied }) => {
     const colors = ['#ff0000', '#994C00', '#ff8000', '#ffff00', '#80ff00', '#1FA61A', '#00ffff', '#0080ff', '#0000ff', '#8000ff', '#ff0080', '#ff8080'];
-    const [selectedColor, setSelectedColor] = useState<string>('gray');
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
     const handleColorClick = (color: string) => {
+        if (occupied && occupied.includes(color)) return; // Prevent selecting an occupied color
+
         setSelectedColor(color);
-        onColorSelect(color); // Pass selected color to parent component
+        onColorSelect(color);
         onClose();
     };
 
@@ -31,7 +33,7 @@ const ChooseColorPopup: React.FC<ChooseColorPopupProps> = ({ isOpen, onClose, on
                     <div
                         key={index}
                         className="w-12 h-12 rounded-full cursor-pointer"
-                        style={{ backgroundColor: selectedColor === color ? 'gray' : color }}
+                        style={{ backgroundColor: (occupied && occupied.includes(color)) ? 'black' : color }}
                         onClick={() => handleColorClick(color)}
                     ></div>
                 ))}

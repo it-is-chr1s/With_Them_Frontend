@@ -197,7 +197,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
 			// Draw players
 			players.forEach((position, playerId) => {
-				console.log("player position: ", position.x, position.y);
+				//console.log("player position: ", position.x, position.y);
 				const currentPlayer = players.get(name);
 				const isCurrentPlayer = playerId === name;
 

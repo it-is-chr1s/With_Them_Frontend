@@ -21,7 +21,7 @@ const GameComponent: React.FC = () => {
 	};
 
 	const [startEmergencyMeeting, setStartMeeting] = useState(false);
-
+  const [occupiedColors,setOccupiedColors]=useState<string[]|null>(['#0080ff']);
 	const [connected, setConnected] = useState<boolean>(false);
 	const [canKill, setCanKill] = useState<boolean>(false);
 	const location = useLocation();
@@ -164,12 +164,21 @@ const GameComponent: React.FC = () => {
 					}
 				);
 
+        stompClientMap.current?.subscribe(
+					"/topic/" + gameId + "/occupiedColors",
+					(message) => {
+						const oc= JSON.parse(message.body);
+            setOccupiedColors(oc);
+						console.log("OccupiedColors:", oc);
+					}
+				);
+
 				stompClientMap.current?.subscribe(
 					"/topic/" + gameId + "/position",
 					(message) => {
 						const positionUpdate = JSON.parse(message.body);
 
-						console.log("positionupdate: ", positionUpdate);
+						//console.log("positionupdate: ", positionUpdate);
 						setPlayers((prevPlayers) =>
 							new Map(prevPlayers).set(positionUpdate.playerId, {
 								x: positionUpdate.position.x,
@@ -180,7 +189,7 @@ const GameComponent: React.FC = () => {
 								deathY: positionUpdate.deathPosition.y,
 							})
 						);
-						console.log("players: ", players);
+						//console.log("players: ", players);
 					}
 				);
 
@@ -228,10 +237,10 @@ const GameComponent: React.FC = () => {
 						"/controlsEnabled/emergencyMeetingReport",
 					(message) => {
 						if (message.body === "true") {
-							console.log("CORPES" + true);
+							//console.log("CORPES" + true);
 							setOnCorpes(true);
 						} else {
-							console.log("CORPES" + false);
+							//console.log("CORPES" + false);
 							setOnCorpes(false);
 						}
 					}
@@ -629,6 +638,7 @@ const GameComponent: React.FC = () => {
 							/>
 							<ChooseColorPopup
 								isOpen={isOpen}
+                occupied={occupiedColors}
 								onClose={togglePopup}
 								onColorSelect={handleColorSelect}
 							/>
