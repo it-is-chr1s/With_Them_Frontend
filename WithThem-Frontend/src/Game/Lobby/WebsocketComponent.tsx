@@ -9,7 +9,7 @@ const WebSocketComponent: React.FC = () => {
 
   useEffect(() => {
     stompClient.current = new Client({
-      brokerURL: "ws://localhost:4000/ws",
+      brokerURL: "ws://10.0.40.170:4000/ws",
       onConnect: () => {
         setConnected(true);
         stompClient.current?.subscribe(
