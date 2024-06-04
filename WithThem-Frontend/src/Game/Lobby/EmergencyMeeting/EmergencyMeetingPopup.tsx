@@ -18,6 +18,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     const [deadPlayers, setDeadPlayers] = useState<string[]>([]);
     const [votingActive, setVotingActive] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<string>("");
+    const [remainingTime, setRemainingTime] = useState<number>(45); // 45 seconds countdown
     const isAlive = !deadPlayers.includes(name);
 
     useEffect(() => {
@@ -45,50 +46,61 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
 
     }, [isOpen, gameId]);
 
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval>;
+
+        if (votingActive) {
+            interval = setInterval(() => {
+                setRemainingTime(prevTime => {
+                    if (prevTime <= 1) {
+                        clearInterval(interval);
+                        setVotingActive(false);
+                        fetchSuspect();
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000); // Decrease time every second
+        }
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [votingActive]);
+
     const startVoting = () => {
         fetch(`http://localhost:4002/meeting/startVoting`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json',},
+            headers: { 'Content-Type': 'application/json' },
             body: gameId,
         })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to start voting');
             }
-            // Handle success if needed
         })
         .catch(error => {
-            console.error('Error start voting:', error);
+            console.error('Error starting voting:', error);
         });
 
-        let timeout: ReturnType<typeof setTimeout>;
-        timeout = setTimeout(() => {
-                if(votingActive)setVotingActive(false);
-                if(isOpen){
-                    fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
-                    .then((response) => {
-                        if (!response.ok) {throw new Error('Failed to catch a suspect');}
-                        return response.text();
-                    })
-                    .then((data) => console.log("data in after 45s suspect "+data))
-                    .catch((error) =>
-                      console.error("Error fetching suspect:", error)
-                    ); 
-                }    
-            
-                       
-        }, 45000); // 45 seconds
-        return () => {
-            clearTimeout(timeout);
-        };
+        setRemainingTime(45); // Reset the countdown timer
+    };
+
+    const fetchSuspect = () => {
+        fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch suspect');
+                }
+                return response.text();
+            })
+            .then(data => console.log("data after 45s suspect " + data))
+            .catch(error => console.error("Error fetching suspect:", error));
     };
 
     const vote = () => {
-        console.log("my name:" + name);
-        console.log("selected player:" + selectedPlayer);
         setVotingActive(false);
-    
-        // Send POST request with the voter's name and the selected player's name
+
         if (selectedPlayer) {
             fetch(`http://localhost:4002/meeting/vote`, {
                 method: 'POST',
@@ -98,7 +110,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                 body: JSON.stringify({
                     gameId: gameId,
                     voter: name,
-                    nominated: selectedPlayer
+                    nominated: selectedPlayer,
                 }),
             })
             .then(response => {
@@ -108,14 +120,10 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                 return response.text();
             })
             .then(data => {
-                // Handle response and update state if necessary
-                if (data !== "" ) {
+                if (data !== "") {
                     console.log("SUSPECT:" + data);
-                    //setSuspect(data);
                 } else {
-                    // Handle case when response is null (no content)
                     console.log("No suspect received from the server.");
-                    //setSuspect(null); // Or handle in another way as per your requirement
                 }
             })
             .catch(error => {
@@ -123,18 +131,20 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
             });
         }
     };
-    
 
     return (
         <Popup isOpen={isOpen} onClose={onClose}>
-            <div>
+            <div className="flex flex-col items-center justify-center h-full">
                 <h1 className="text-black text-3xl mb-8">Emergency Meeting</h1>
                 <h2 className="text-black text-xl mb-4">Alive:</h2>
                 {votingActive && isAlive && (
-                    <h2 className="text-black text-xl mb-4">*select alive a player</h2>
-                )}                
+                    <div className="items-center">
+                                                <span className="ml-2 text-red-500 text-xl">({remainingTime}s)</span>
+                        <h2 className="text-black text-xl mb-4">WHO IS THE IMPOSTER?</h2>
+                    </div>
+                )}
                 
-                <div className="flex flex-wrap">
+                <div className="flex flex-wrap items-center justify-center">
                     {alivePlayers.map((player, index) => (
                         <div
                             key={index}
@@ -149,7 +159,9 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                     ))}
                 </div>
 
-                <h2 className="text-black text-xl mb-4">Dead:</h2>
+                {deadPlayers.length > 0 && (
+                    <h2 className="text-black text-xl mb-4">Dead:</h2>
+                )}
                 <div className="flex flex-wrap">
                     {deadPlayers.map((player, index) => (
                         <div
