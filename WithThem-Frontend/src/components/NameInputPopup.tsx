@@ -9,6 +9,8 @@ interface NameInputPopupProps {
   initialGameId?: string; //optional prop for initial gameId
 }
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const NameInputPopup: React.FC<NameInputPopupProps> = ({
   isOpen,
   onClose,
@@ -33,7 +35,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
       try {
         console.log(username);
         const response = await fetch(
-          `http://10.0.40.170:4000/createGame?hostName=${username}`,
+          `http://${apiUrl}:4000/createGame?hostName=${username}`,
           {
             method: "POST",
             headers: {
@@ -55,7 +57,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
       setGameId(initialGameId);
 
       if (gameId !== "") {
-        await fetch(`http://10.0.40.170:4000/ableToJoin/${gameId}/${username}`)
+        await fetch(`http://${apiUrl}:4000/ableToJoin/${gameId}/${username}`)
           .then((response) => {
             if (!response.ok) {
               throw new Error("Failed to check if able to join");

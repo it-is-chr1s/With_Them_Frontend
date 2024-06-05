@@ -13,6 +13,8 @@ import TasksTodoList from "./Tasks/TasksTodoList"; //
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -69,7 +71,7 @@ const GameComponent: React.FC = () => {
   const [suspectRoll, setSuspectRoll] = useState<string | null>("");
   useEffect(() => {
     stompClientMeeting.current = new Client({
-      brokerURL: "ws://10.0.40.170:4002/ws",
+      brokerURL: `ws://${apiUrl}:4002/ws`,
       onConnect: () => {
         console.log("Connected to emergency meeting websocket");
 
@@ -102,7 +104,7 @@ const GameComponent: React.FC = () => {
     stompClientMeeting.current.activate();
 
     stompClientTasks.current = new Client({
-      brokerURL: "ws://10.0.40.170:4001/ws",
+      brokerURL: `ws://${apiUrl}:4001/ws`,
       onConnect: () => {
         console.log("Connected to tasks websocket");
         stompClientTasks.current?.subscribe(
@@ -145,7 +147,7 @@ const GameComponent: React.FC = () => {
     stompClientTasks.current.activate();
 
     stompClientMap.current = new Client({
-      brokerURL: "ws://10.0.40.170:4000/ws",
+      brokerURL: `ws://${apiUrl}:4000/ws`,
       onConnect: () => {
         setConnected(true);
 
@@ -208,7 +210,7 @@ const GameComponent: React.FC = () => {
             "/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
-              fetch(`http://10.0.40.170:4002/meeting/${gameId}/startable`)
+              fetch(`http://${apiUrl}:4002/meeting/${gameId}/startable`)
                 .then((response) => response.json())
                 .then((data) => setOnMeetingField(data))
                 .catch((error) =>
@@ -321,7 +323,7 @@ const GameComponent: React.FC = () => {
 
   const startGameFunction = () => {
     if (connected && stompClientMap.current) {
-      fetch("http://10.0.40.170:4000/startGame", {
+      fetch(`http://${apiUrl}:4000/startGame`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

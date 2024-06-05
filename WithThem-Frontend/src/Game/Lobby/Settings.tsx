@@ -9,11 +9,14 @@ type SettingsProps = {
   gameId: string;
   name: string;
 };
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 export default function Settings({ gameId, name }: SettingsProps) {
   const [settings, setSettings] = useState<Settings>();
   const [fetchTrigger, setFetchTrigger] = useState(false);
   useEffect(() => {
-    fetch("http://10.0.40.170:4000/settings/" + gameId, {
+    fetch(`http://${apiUrl}:4000/settings/` + gameId, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -37,7 +40,7 @@ export default function Settings({ gameId, name }: SettingsProps) {
 
   function handleChange(id: string, e: any) {
     fetch(
-      `http://10.0.40.170:4000/settings/${gameId}/${name}/${id}/${e.target.value}`,
+      `http://${apiUrl}:4000/settings/${gameId}/${name}/${id}/${e.target.value}`,
       {
         method: "POST",
         headers: {

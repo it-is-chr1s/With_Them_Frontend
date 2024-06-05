@@ -8,6 +8,8 @@ interface EmergencyMeetingPopupProps {
   name: string;
 }
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
   isOpen,
   onClose,
@@ -31,7 +33,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
         setVotingActive(true);
         startVoting();
       }, 5000); // 5 seconds
-      fetch(`http://10.0.40.170:4000/game/${gameId}/players`)
+      fetch(`http://${apiUrl}:4000/game/${gameId}/players`)
         .then((response) => response.json())
         .then((data) => {
           setAlivePlayers(data.alive);
@@ -70,7 +72,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
   }, [votingActive]);
 
   const startVoting = () => {
-    fetch(`http://localhost:4002/meeting/startVoting`, {
+    fetch(`http://${apiUrl}:4002/meeting/startVoting`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: gameId,
@@ -88,7 +90,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
   };
 
   const fetchSuspect = () => {
-    fetch(`http://localhost:4002/meeting/${gameId}/suspect`)
+    fetch(`http://${apiUrl}:4002/meeting/${gameId}/suspect`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch suspect");
@@ -103,7 +105,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     setVotingActive(false);
 
     if (selectedPlayer) {
-      fetch(`http://localhost:4002/meeting/vote`, {
+      fetch(`http://${apiUrl}:4002/meeting/vote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
