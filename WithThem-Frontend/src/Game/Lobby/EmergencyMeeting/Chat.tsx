@@ -1,0 +1,94 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Client, IMessage } from "@stomp/stompjs";
+
+interface ChatProps {
+    gameId: string;
+    name: string;
+}
+
+interface Message {
+    _gameId: string;
+    _sender: string;
+    _content: string;
+}
+
+const Chat: React.FC<ChatProps> = ({ gameId, name }) => {
+    const stompClientChat = useRef<Client | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [newMessage, setNewMessage] = useState<string>("");
+
+    useEffect(() => {
+        stompClientChat.current = new Client({
+            brokerURL: "ws://localhost:4003/ws",
+            onConnect: () => {
+                console.log("Connected to chat websocket");
+
+                stompClientChat.current?.subscribe(
+                    `/topic/chat/${gameId}/message`,
+                    (message: IMessage) => {
+                        console.log(JSON.parse(message.body));
+                        const parsedMessage: Message = JSON.parse(message.body);
+                        setMessages((prevMessages) => [...prevMessages, parsedMessage]);
+                    }
+                );
+            },
+            onDisconnect: () => {},
+            onWebSocketError: (error: Event) => {
+                console.error("Error with CHAT websocket", error);
+            },
+            onStompError: (frame: any) => {
+                console.error(
+                    "Broker reported error in CHAT: " +
+                        frame.headers["message"]
+                );
+                console.error("Additional details: " + frame.body);
+            },
+        });
+
+        stompClientChat.current.activate();
+
+        return () => {
+            stompClientChat.current?.deactivate();
+        };
+    }, [gameId]);
+
+    const handleSendMessage = () => {
+        if (stompClientChat.current && newMessage.trim() !== "") {
+            const msg = {
+                gameId:gameId,
+                sender: name,
+                content: newMessage,
+            };
+            stompClientChat.current.publish({
+                destination: `/app/chat/message`,
+                body: JSON.stringify(msg),                
+            });
+            setNewMessage("");
+        }
+    };
+    
+    return (
+        <div className="chat-container">
+            <h1 className="text-black text-3xl mb-8">Chat</h1>
+            <div className="messages-container" style={{ maxHeight: '300px', overflowY: messages.length > 4 ? 'scroll' : 'visible' }}>
+                {messages.map((msg, index) => (
+                    <div key={index} className="message">
+                        <strong>{msg._sender}: </strong>{msg._content}
+                    </div>
+                ))}
+            </div>
+            <div className="input-container">
+                <input 
+                    type="text" 
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type your message here..."
+                    className="rounded-l-lg py-2 px-4 w-64 border-t border-b border-l text-gray-800 border-gray-200 bg-white focus:outline-none focus:border-blue-500"
+                />
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-lg ml-1" onClick={handleSendMessage}>Send</button>
+            </div>
+        </div>
+    );
+};
+
+export default Chat;

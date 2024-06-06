@@ -12,14 +12,18 @@ import FileUploadDownload from "./Tasks/FileUploadDownload";
 import TasksTodoList from "./Tasks/TasksTodoList"; //
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
+import Chat from "./EmergencyMeeting/Chat";
 
 const GameComponent: React.FC = () => {
 	const [isOpen, setIsOpen] = useState(false);
+	const [inChat, setInChat] = useState(false);
 
 	const togglePopup = () => {
 		setIsOpen(!isOpen);
 	};
-
+  const toggleChat = () => {
+		setInChat(!inChat);
+	};
 	const [startEmergencyMeeting, setStartMeeting] = useState(false);
   const [occupiedColors,setOccupiedColors]=useState<string[]|null>(['#0080ff']);
 	const [connected, setConnected] = useState<boolean>(false);
@@ -631,11 +635,19 @@ const GameComponent: React.FC = () => {
 								label="start Game"
 								active={true}
 							/>
+              <InGameButton
+								onClick={toggleChat}
+								label="Chat"
+								active={true}
+							/>
 							<h1>GameID: {gameId}</h1>
 							<ButtonComponent
 								onClick={togglePopup}
 								label="Choose color"
 							/>
+              <Popup isOpen={inChat} onClose={toggleChat}>
+                <Chat name={name} gameId={gameId}></Chat>
+              </Popup>
 							<ChooseColorPopup
 								isOpen={isOpen}
                 occupied={occupiedColors}

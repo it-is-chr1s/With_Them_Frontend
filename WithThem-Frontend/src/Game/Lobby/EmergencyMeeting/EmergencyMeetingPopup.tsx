@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Popup from "../../../components/Popup";
+import Chat from "./Chat";
 
 interface EmergencyMeetingPopupProps {
     isOpen: boolean;
@@ -187,6 +188,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                 )}
                
             </div>
+            <Chat gameId={gameId} name={name}/>
         </Popup>
     );
 };
