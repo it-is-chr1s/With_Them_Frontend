@@ -66,28 +66,51 @@ const Chat: React.FC<ChatProps> = ({ gameId, name }) => {
             setNewMessage("");
         }
     };
-    
+    useEffect(() => {
+        // Scroll to the bottom of the container
+        const messagesContainer = document.querySelector('.messages-container');
+    if (messagesContainer) {
+        const isUserAtBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight - messagesContainer.scrollTop <= 50;
+        if (isUserAtBottom) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+    }, [messages]);
     return (
-        <div className="chat-container">
-            <h1 className="text-black text-3xl mb-8">Chat</h1>
-            <div className="messages-container" style={{ maxHeight: '300px', overflowY: messages.length > 4 ? 'scroll' : 'visible' }}>
-                {messages.map((msg, index) => (
-                    <div key={index} className="message">
-                        <strong>{msg._sender}: </strong>{msg._content}
-                    </div>
-                ))}
-            </div>
-            <div className="input-container">
-                <input 
-                    type="text" 
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="rounded-l-lg py-2 px-4 w-64 border-t border-b border-l text-gray-800 border-gray-200 bg-white focus:outline-none focus:border-blue-500"
-                />
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-lg ml-1" onClick={handleSendMessage}>Send</button>
-            </div>
+        <div className="chat-container p-4 border rounded-lg">
+        <h1 className="text-black text-3xl mb-4">Chat</h1>
+        <div
+            className="messages-container"
+            style={{
+                maxHeight: '160px',
+                overflowY: 'scroll',
+                border: '1px solid #ccc',
+                padding: '10px',
+                borderRadius: '4px',
+            }}
+        >
+            {messages.map((msg, index) => (
+                <div key={index} className="message mb-2">
+                    <strong>{msg._sender}: </strong>{msg._content}
+                </div>
+            ))}
         </div>
+        <div className="input-container mt-4 flex">
+            <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message here..."
+                className="rounded-l-lg py-2 px-4 w-full border-t border-b border-l text-gray-800 border-gray-200 bg-white focus:outline-none focus:border-blue-500"
+            />
+            <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-lg ml-1"
+                onClick={handleSendMessage}
+            >
+                Send
+            </button>
+        </div>
+    </div>
     );
 };
 
