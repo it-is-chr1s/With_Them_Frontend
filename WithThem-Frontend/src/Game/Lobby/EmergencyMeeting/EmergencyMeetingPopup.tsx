@@ -188,7 +188,11 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                 )}
                
             </div>
-            <Chat inLobby={false} gameId={gameId} name={name}/>
+              {/* Add space between Vote button and Chat */}
+        <div style={{ marginTop: '10px' }}></div>
+        
+            {isAlive && (
+            <Chat inLobby={false} gameId={gameId} name={name}/>)}
         </Popup>
     );
 };
