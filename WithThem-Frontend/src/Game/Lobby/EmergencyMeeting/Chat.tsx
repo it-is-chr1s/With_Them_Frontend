@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
 
 interface ChatProps {
+    inLobby:boolean;
     gameId: string;
     name: string;
 }
@@ -12,7 +13,7 @@ interface Message {
     _content: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ gameId, name }) => {
+const Chat: React.FC<ChatProps> = ({ inLobby, gameId, name }) => {
     const stompClientChat = useRef<Client | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState<string>("");
@@ -22,7 +23,32 @@ const Chat: React.FC<ChatProps> = ({ gameId, name }) => {
             brokerURL: "ws://localhost:4003/ws",
             onConnect: () => {
                 console.log("Connected to chat websocket");
-
+                if(inLobby){
+                    // Call the backend endpoint to fetch chat messages
+                    fetch(`http://localhost:4003/chat/messages/${gameId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch chat messages');
+                        }
+                        console.log(response);
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Set the fetched messages to the state
+                        setMessages(data);
+                        // Scroll to the bottom of the container
+                       // Scroll to the bottom of the container after state update
+                        setTimeout(() => {
+                            const messagesContainer = document.querySelector('.messages-container');
+                            if (messagesContainer) {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }
+                        }, 0);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching chat messages:", error);
+                    });
+                }
                 stompClientChat.current?.subscribe(
                     `/topic/chat/${gameId}/message`,
                     (message: IMessage) => {

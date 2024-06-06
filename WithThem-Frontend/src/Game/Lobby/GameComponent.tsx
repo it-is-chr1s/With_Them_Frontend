@@ -646,7 +646,7 @@ const GameComponent: React.FC = () => {
 								label="Choose color"
 							/>
               <Popup isOpen={inChat} onClose={toggleChat}>
-                <Chat name={name} gameId={gameId}></Chat>
+                <Chat inLobby={true} name={name} gameId={gameId}></Chat>
               </Popup>
 							<ChooseColorPopup
 								isOpen={isOpen}

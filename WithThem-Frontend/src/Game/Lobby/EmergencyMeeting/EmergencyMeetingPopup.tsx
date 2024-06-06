@@ -188,7 +188,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
                 )}
                
             </div>
-            <Chat gameId={gameId} name={name}/>
+            <Chat inLobby={false} gameId={gameId} name={name}/>
         </Popup>
     );
 };
