@@ -116,10 +116,16 @@ const Chat: React.FC<ChatProps> = ({ inLobby, gameId, name }) => {
             }}
         >
             {messages.map((msg, index) => (
-                <div key={index} className="message mb-2">
-                    <strong>{msg._sender}: </strong>{msg._content}
-                </div>
-            ))}
+    <div
+        key={index}
+        className={`message mb-2 ${msg._sender === name ? 'text-right' : 'text-left'}`}
+        style={{ marginRight: msg._sender === name ? '10px' : '0', marginLeft: msg._sender !== name ? '10px' : '0' }}
+    >
+        {msg._sender !== name && <strong>{msg._sender}: </strong>}
+        {msg._sender === name && <strong>You: </strong>}
+        {msg._content}
+    </div>
+))}
         </div>
         <div className="input-container mt-4 flex">
             <input
