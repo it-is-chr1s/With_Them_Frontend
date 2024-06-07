@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Popup from "./Popup";
 import InputForm from "./InputForm";
 import { useNavigate } from "react-router-dom";
@@ -17,8 +17,8 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
   initialGameId,
 }) => {
   const [username, setUsername] = useState("");
-  const [canJoin, setCanJoin] = useState(false);
-  const [gameId, setGameId] = useState(initialGameId || ""); // Initialize gameId with initialGameId if provided
+  var canJoin = false;
+  var gameId = initialGameId || "";
 
   const navigate = useNavigate();
 
@@ -29,8 +29,6 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
     return check;
   };
   const handleJoin = async () => {
-    // If gameId is not provided, create a new game
-    console.log(initialGameId);
     if (initialGameId === undefined) {
       try {
         console.log(username);
@@ -45,17 +43,17 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
         );
         if (response.ok) {
           const data = await response.text();
-          setGameId(data); // Set the game ID received from the backend
+          gameId = data;
+          console.log("Join1: " + initialGameId);
         } else {
           console.error("Failed to create game:", response.statusText);
         }
       } catch (error) {
         console.error("Error creating game:", error);
       }
-      console.log({ gameId });
     } else {
-      setGameId(initialGameId);
-
+      gameId = initialGameId;
+      console.log("GAMEID: " + gameId);
       if (gameId !== "") {
         await fetch(`http://${apiUrl}:4000/ableToJoin/${gameId}/${username}`)
           .then((response) => {
@@ -67,21 +65,24 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
           .then((data) => {
             if (data === "true") {
               console.log("CHECK true " + data);
-              setCanJoin(true);
+              console.log("Join2: " + initialGameId);
+              canJoin = true;
             } else {
+              console.log("Join3: " + initialGameId);
               console.log("CHECK false" + data);
-              setCanJoin(false);
+              canJoin = false;
             }
+            
           })
           .catch((error) =>
             console.error("Error fetching able to join:", error)
           );
-        if (!canJoin) {
-          console.log("CANNOT JOIN");
-          return;
-        }
+
+          if (!canJoin) {
+            console.log("CANNOT JOIN");
+            return;
+          }
       }
-      console.log("GAMEID:" + gameId);
     }
 
     if (username.trim() !== "" && gameId) {
