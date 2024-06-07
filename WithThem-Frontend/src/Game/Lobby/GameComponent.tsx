@@ -491,8 +491,8 @@ const GameComponent: React.FC = () => {
   }, [onMeetingField]);
 
   return (
-    <div className="container">
-      <div>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="flex justify-center items-center w-full h-full">
         <PlayerControls onMove={handleMove} />
         <GameCanvas
           players={players}
