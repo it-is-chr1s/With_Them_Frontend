@@ -316,9 +316,34 @@ const GameComponent: React.FC = () => {
     handleMove("NONE");
   }, []);
 
+  useEffect(() => {
+    const fetchGameState = async () => {
+      try {
+        const response = await fetch(
+          `http://${apiUrl}:4000/requestGameState/${gameId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setIsRunning(data.isRunning);
+        } else {
+          console.error("Failed to fetch game state:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching game state:", error);
+      }
+    };
+
+    fetchGameState();
+  }, [gameId, apiUrl]);
+
   const handleMove = (direction: string) => {
-    console.log("current task: ", currentTask);
-    if (startEmergencyMeeting || currentTask) {
+    if (
+      startEmergencyMeeting ||
+      (currentTask?.task === "FileDownloadUpload" &&
+        (currentTask?.status === "Download" ||
+          (currentTask?.status === "Upload" && currentTask?.progress >= 0))) ||
+      currentTask?.task === "Connecting Wires"
+    ) {
       return;
     }
 
@@ -586,11 +611,21 @@ const GameComponent: React.FC = () => {
         <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
           {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
-        <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+        <div className="fixed top-5 right-1 flex flex-col items-end space-y-2 z-50">
+          <div
+            className={`rounded-md p-4 ${
+              role === 1 ? "bg-red-600" : "bg-blue-600"
+            }`}
+          >
+            <p>
+              {"You are: "}
+              {role === 1 ? "Imposter" : "Crewmate"}
+            </p>
+          </div>
+        </div>
+        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-col items-end space-y-2">
           {isRunning ? (
             <>
-              {"Role: "}
-              {role == 1 ? "Imposter" : "Crewmate"}
               {isPlayerAlive && (
                 <InGameButton
                   onClick={startMeeting}

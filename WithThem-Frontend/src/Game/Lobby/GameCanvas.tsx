@@ -38,8 +38,8 @@ type IdColors = {
 };
 
 const cellSize = 30;
-const cavnasHeight = window.innerHeight - 1;
-const cavnasWidth = window.innerWidth - 1;
+const cavnasHeight = 9 * 4 * cellSize;
+const cavnasWidth = 16 * 4 * cellSize;
 
 const idColors = {} as IdColors;
 
@@ -301,7 +301,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           }
 
           context.globalAlpha = 1.0;
-          context.fillStyle = "black";
+          context.fillStyle = position.color;
           context.font = "8px Arial";
           context.fillText(
             playerId,
