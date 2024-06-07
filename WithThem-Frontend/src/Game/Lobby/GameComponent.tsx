@@ -348,7 +348,8 @@ const GameComponent: React.FC = () => {
 
   	const callSabotage = () => {
 		stompClientTasks.current?.publish({
-		  destination: "/app/tasks/sabotage"
+		  destination: "/app/tasks/sabotage/start",
+		  body: gameId
 		});
 	}
 
