@@ -1,5 +1,5 @@
 // GameCanvas.tsx
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 
 interface PlayerPositionAndColor {
   x: number;
@@ -38,8 +38,8 @@ type IdColors = {
 };
 
 const cellSize = 30;
-const cavnasHeight = 9 * 3;
-const cavnasWidth = 16 * 3;
+const cavnasHeight = window.innerHeight - 1;
+const cavnasWidth = window.innerWidth - 1;
 
 const idColors = {} as IdColors;
 
@@ -53,6 +53,85 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   height,
   width,
 }) => {
+  const colorToSpriteMap = {
+    "#ff0000": [
+      "/src/assets/sprites/characters/red/frame-1.png",
+      "/src/assets/sprites/characters/red/frame-2.png",
+    ],
+    "#994C00": [
+      "/src/assets/sprites/characters/brown/frame-1.png",
+      "/src/assets/sprites/characters/brown/frame-2.png",
+    ],
+    "#ff8000": [
+      "/src/assets/sprites/characters/orange/frame-1.png",
+      "/src/assets/sprites/characters/orange/frame-2.png",
+    ],
+    "#ffff00": [
+      "/src/assets/sprites/characters/yellow/frame-1.png",
+      "/src/assets/sprites/characters/yellow/frame-2.png",
+    ],
+    "#80ff00": [
+      "/src/assets/sprites/characters/lime/frame-1.png",
+      "/src/assets/sprites/characters/lime/frame-2.png",
+    ],
+    "#1FA61A": [
+      "/src/assets/sprites/characters/green/frame-1.png",
+      "/src/assets/sprites/characters/green/frame-2.png",
+    ],
+    "#00ffff": [
+      "/src/assets/sprites/characters/cyan/frame-1.png",
+      "/src/assets/sprites/characters/cyan/frame-2.png",
+    ],
+    "#0080ff": [
+      "/src/assets/sprites/characters/blue/frame-1.png",
+      "/src/assets/sprites/characters/blue/frame-2.png",
+    ],
+    "#0000ff": [
+      "/src/assets/sprites/characters/navy/frame-1.png",
+      "/src/assets/sprites/characters/navy/frame-2.png",
+    ],
+    "#8000ff": [
+      "/src/assets/sprites/characters/purple/frame-1.png",
+      "/src/assets/sprites/characters/purple/frame-2.png",
+    ],
+    "#ff0080": [
+      "/src/assets/sprites/characters/magenta/frame-1.png",
+      "/src/assets/sprites/characters/magenta/frame-2.png",
+    ],
+    "#ff8080": [
+      "/src/assets/sprites/characters/pink/frame-1.png",
+      "/src/assets/sprites/characters/pink/frame-2.png",
+    ],
+    "#808080": [
+      "/src/assets/sprites/characters/gray/frame-1.png",
+      "/src/assets/sprites/characters/gray/frame-2.png",
+    ],
+  };
+  const [sprites, setSprites] = useState({} as any);
+
+  useEffect(() => {
+    const loadedSprites = {} as any;
+    Object.entries(colorToSpriteMap).forEach(([color, paths]) => {
+      loadedSprites[color] = paths.map((path) => {
+        const img = new Image();
+        img.src = path;
+        img.onload = () => console.log(`Sprite for ${color} loaded`);
+        return img;
+      });
+    });
+    setSprites(loadedSprites);
+  }, []);
+
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFrameIndex((prevIndex) => (prevIndex + 1) % 2);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawGame = () => {
@@ -195,68 +274,41 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         });
       });
 
-      // Draw players
       players.forEach((position, playerId) => {
-        //console.log("player position: ", position.x, position.y);
-        const currentPlayer = players.get(name);
-        const isCurrentPlayer = playerId === name;
-
-        context.fillStyle = position.color;
         if (
           position.isAlive ||
-          isCurrentPlayer ||
-          (currentPlayer && !currentPlayer.isAlive && !position.isAlive)
+          playerId === name ||
+          (!position.isAlive && !players.get(name)?.isAlive)
         ) {
+          const spriteWidth = cellSize;
+          const spriteHeight = cellSize;
+          let imageX = position.x * cellSize - spriteWidth / 2;
+          let imageY = position.y * cellSize - spriteHeight / 2;
+
           if (!position.isAlive) {
-            context.fillStyle = "gray";
+            context.globalAlpha = 0.5;
           }
-          context.beginPath();
-          context.arc(
-            position.x * cellSize,
-            position.y * cellSize,
-            10,
-            0,
-            2 * Math.PI
-          );
-          context.fill();
+
+          const spritesForColor = sprites[position.color];
+          if (spritesForColor && spritesForColor.length > frameIndex) {
+            context.drawImage(
+              spritesForColor[frameIndex],
+              imageX,
+              imageY,
+              spriteWidth,
+              spriteHeight
+            );
+          }
+
+          context.globalAlpha = 1.0;
+          context.fillStyle = "black";
           context.font = "8px Arial";
           context.fillText(
             playerId,
             position.x * cellSize,
             (position.y - 0.5) * cellSize
           );
-          context.fill();
         }
-        if (!position.isAlive) {
-          context.strokeStyle = position.color;
-          context.beginPath();
-          context.lineWidth = 3;
-          context.moveTo(
-            position.deathX * cellSize - cellSize / 4,
-            position.deathY * cellSize - cellSize / 4
-          );
-          context.lineTo(
-            position.deathX * cellSize + cellSize / 4,
-            position.deathY * cellSize + cellSize / 4
-          );
-          context.moveTo(
-            position.deathX * cellSize + cellSize / 4,
-            position.deathY * cellSize - cellSize / 4
-          );
-          context.lineTo(
-            position.deathX * cellSize - cellSize / 4,
-            position.deathY * cellSize + cellSize / 4
-          );
-          context.stroke();
-          context.font = "8px Arial";
-          context.fillText(
-            playerId,
-            position.deathX * cellSize,
-            (position.deathY - 0.5) * cellSize
-          );
-        }
-
-        context.fill();
       });
 
       context.restore();
@@ -287,8 +339,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      width={cavnasWidth * cellSize}
-      height={cavnasHeight * cellSize}
+      width={cavnasWidth}
+      height={cavnasHeight}
       style={{ border: "1px solid #000" }}
     ></canvas>
   );
