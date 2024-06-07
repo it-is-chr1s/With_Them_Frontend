@@ -346,6 +346,12 @@ const GameComponent: React.FC = () => {
     }
   };
 
+  	const callSabotage = () => {
+		stompClientTasks.current?.publish({
+		  destination: "/app/tasks/sabotage"
+		});
+	}
+
   const handleColorSelect = (color: string) => {
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
@@ -595,11 +601,14 @@ const GameComponent: React.FC = () => {
               )}
               <InGameButton onClick={use} label="Use" active={useEnabled} />
               {role == 1 && (
+				<>
                 <InGameButton
                   onClick={handleKill}
                   label="Kill"
                   active={true} //TODO: replace with canKill
                 />
+				<InGameButton onClick={callSabotage} label="Sabotage" active={true} />
+				</>
               )}
             </>
           ) : (
