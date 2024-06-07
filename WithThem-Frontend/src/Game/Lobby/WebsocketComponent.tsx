@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const WebSocketComponent: React.FC = () => {
   const [connected, setConnected] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
@@ -9,7 +11,7 @@ const WebSocketComponent: React.FC = () => {
 
   useEffect(() => {
     stompClient.current = new Client({
-      brokerURL: "ws://localhost:4000/ws",
+      brokerURL: `ws://${apiUrl}:4000/ws`,
       onConnect: () => {
         setConnected(true);
         stompClient.current?.subscribe(
