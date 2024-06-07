@@ -317,6 +317,11 @@ const GameComponent: React.FC = () => {
   }, []);
 
   const handleMove = (direction: string) => {
+    console.log("current task: ", currentTask);
+    if (startEmergencyMeeting || currentTask) {
+      return;
+    }
+
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
         destination: "/app/move",
@@ -496,7 +501,7 @@ const GameComponent: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <div className="flex justify-center items-center w-full h-full">
+      <div className="flex justify-center items-center w-full h-full overflow-hidden">
         <PlayerControls onMove={handleMove} />
         <GameCanvas
           players={players}
