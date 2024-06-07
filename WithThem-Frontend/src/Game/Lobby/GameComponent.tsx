@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import GameCanvas from "./GameCanvas";
 import PlayerControls from "./PlayerControls";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "../../components/InGameButton";
@@ -25,6 +25,10 @@ const GameComponent: React.FC = () => {
   };
   const toggleChat = () => {
     setInChat(!inChat);
+  };
+  const navigate = useNavigate();
+  const leaveGame = () => {
+    navigate("/");
   };
   const [startEmergencyMeeting, setStartMeeting] = useState(false);
   const [occupiedColors, setOccupiedColors] = useState<string[] | null>([
@@ -667,6 +671,9 @@ const GameComponent: React.FC = () => {
           )}
         </div>
         {!isRunning && <Settings gameId={gameId} name={name} />}
+      </div>
+      <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 left-5 flex flex-col items-end space-y-2">
+        <ButtonComponent onClick={leaveGame} label="Leave Game" />
       </div>
     </div>
   );
