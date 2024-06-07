@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Popup from "../../../components/Popup";
+import Chat from "./Chat";
 
 interface EmergencyMeetingPopupProps {
   isOpen: boolean;
@@ -200,6 +201,10 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
           </button>
         )}
       </div>
+      {/* Add space between Vote button and Chat */}
+      <div style={{ marginTop: "10px" }}></div>
+
+      {isAlive && <Chat inLobby={false} gameId={gameId} name={name} />}
     </Popup>
   );
 };
