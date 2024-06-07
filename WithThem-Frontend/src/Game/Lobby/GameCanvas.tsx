@@ -338,6 +338,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   return (
     <canvas
+      className="overflow-hidden"
       ref={canvasRef}
       width={cavnasWidth}
       height={cavnasHeight}

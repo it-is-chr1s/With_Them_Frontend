@@ -67,7 +67,7 @@ export default function Settings({ gameId, name }: SettingsProps) {
     setFetchTrigger((prev) => !prev);
   }
   return (
-    <div className="absolute top-10 left-20">
+    <div className="absolute top-5 left-5 p-4 rounded-md bg-blue-600">
       <div key={"maxPlayers"}>
         <p className="text-white">Max Players</p>
         <input

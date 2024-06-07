@@ -9,7 +9,7 @@ import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
-import TasksTodoList from "./Tasks/TasksTodoList"; //
+import TasksTodoList from "./Tasks/TasksTodoList";
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
@@ -529,7 +529,7 @@ const GameComponent: React.FC = () => {
   }, [onMeetingField]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
         <PlayerControls onMove={handleMove} />
         <GameCanvas
@@ -615,7 +615,7 @@ const GameComponent: React.FC = () => {
         <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
           {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
-        <div className="fixed top-5 right-1 flex flex-col items-end space-y-2 z-50">
+        <div className="fixed top-5 right-5 flex flex-col items-end space-y-2 z-50">
           <div
             className={`rounded-md p-4 ${
               role === 1 ? "bg-red-600" : "bg-blue-600"
