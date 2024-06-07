@@ -617,9 +617,11 @@ const GameComponent: React.FC = () => {
               role === 1 ? "bg-red-600" : "bg-blue-600"
             }`}
           >
-            <p>
+            <p className="text-white">
               {"You are: "}
-              {role === 1 ? "Imposter" : "Crewmate"}
+              <a className="font-bold">
+                {role === 1 ? "Imposter" : "Crewmate"}
+              </a>
             </p>
           </div>
         </div>
