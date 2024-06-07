@@ -10,7 +10,7 @@ const InGameButton: React.FC<ButtonProps> = ({ onClick, label, active }) => {
   return (
     <button
       className={
-        (active ? "opacity-60 hover:bg-blue-300" : "opacity-30") +
+        (active ? "opacity-100 hover:bg-blue-300" : "opacity-60") +
         " bg-blue-400 text-white font-bold rounded-full w-20 h-20"
       }
       onClick={onClick}
