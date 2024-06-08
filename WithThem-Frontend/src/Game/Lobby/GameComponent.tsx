@@ -39,6 +39,7 @@ const GameComponent: React.FC = () => {
   const [name] = useState(username);
   const stompClientMap = useRef<Client | null>(null);
   const stompClientTasks = useRef<Client | null>(null);
+  const stompClientSabotages = useRef<Client | null>(null);
   const stompClientMeeting = useRef<Client | null>(null);
   const [players, setPlayers] = useState<
     Map<
@@ -73,6 +74,8 @@ const GameComponent: React.FC = () => {
   const [roleWon, setRoleWon] = useState(undefined);
   const [suspect, setSuspect] = useState<string | null>("");
   const [suspectRoll, setSuspectRoll] = useState<string | null>("");
+  const [cooldown, setCooldown] = useState<number>(0);
+
   useEffect(() => {
     stompClientMeeting.current = new Client({
       brokerURL: `ws://${apiUrl}:4002/ws`,
@@ -149,6 +152,30 @@ const GameComponent: React.FC = () => {
     });
 
     stompClientTasks.current.activate();
+
+    stompClientSabotages.current = new Client({
+      brokerURL: `ws://${apiUrl}:4004/ws`,
+      onConnect: () => {
+        console.log("Connected to sabotage websocket");
+
+        stompClientSabotages.current?.subscribe(
+          "/topic/tasks/" + GameId + "/information",
+          (message) => {
+            console.log(message);
+          }
+        );
+      },
+      onDisconnect: () => {},
+      onWebSocketError: (error: Event) => {
+        console.error("Error with websocket", error);
+      },
+      onStompError: (frame: any) => {
+        console.error("Broker reported error: " + frame.headers["message"]);
+        console.error("Additional details: " + frame.body);
+      }
+    });
+
+    stompClientSabotages.current.activate();
 
     stompClientMap.current = new Client({
       brokerURL: `ws://${apiUrl}:4000/ws`,
@@ -306,6 +333,9 @@ const GameComponent: React.FC = () => {
       if (stompClientTasks.current) {
         stompClientTasks.current.deactivate();
       }
+      if(stompClientSabotages.current){
+        stompClientSabotages.current.deactivate();
+      }
       if (stompClientMeeting.current) {
         stompClientMeeting.current.deactivate();
       }
@@ -347,8 +377,8 @@ const GameComponent: React.FC = () => {
   };
 
   	const callSabotage = () => {
-		stompClientTasks.current?.publish({
-		  destination: "/app/tasks/sabotage/start",
+		stompClientSabotages.current?.publish({
+		  destination: "/app/sabotages/startSabotage",
 		  body: gameId
 		});
 	}
@@ -608,7 +638,7 @@ const GameComponent: React.FC = () => {
                   label="Kill"
                   active={true} //TODO: replace with canKill
                 />
-				<InGameButton onClick={callSabotage} label="Sabotage" active={true} />
+				<InGameButton onClick={callSabotage} label={"Sabotage " + cooldown} active={true} />
 				</>
               )}
             </>
