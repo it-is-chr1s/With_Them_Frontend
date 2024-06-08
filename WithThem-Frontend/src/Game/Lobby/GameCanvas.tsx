@@ -296,6 +296,36 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
             (position.y - 0.5) * cellSize
           );
         }
+
+        if (!position.isAlive) {
+          context.strokeStyle = position.color;
+          context.fillStyle = position.color;
+          context.beginPath();
+          context.lineWidth = 3;
+          context.moveTo(
+            position.deathX * cellSize - cellSize / 4,
+            position.deathY * cellSize - cellSize / 4
+          );
+          context.lineTo(
+            position.deathX * cellSize + cellSize / 4,
+            position.deathY * cellSize + cellSize / 4
+          );
+          context.moveTo(
+            position.deathX * cellSize + cellSize / 4,
+            position.deathY * cellSize - cellSize / 4
+          );
+          context.lineTo(
+            position.deathX * cellSize - cellSize / 4,
+            position.deathY * cellSize + cellSize / 4
+          );
+          context.stroke();
+          context.font = "8px Arial";
+          context.fillText(
+            playerId,
+            position.deathX * cellSize,
+            (position.deathY - 0.5) * cellSize
+          );
+        }
       });
 
       context.restore();
