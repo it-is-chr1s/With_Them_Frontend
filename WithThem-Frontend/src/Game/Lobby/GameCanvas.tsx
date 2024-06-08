@@ -1,5 +1,31 @@
 // GameCanvas.tsx
 import React, { useRef, useEffect, useState } from "react";
+import sprite1 from "/src/assets/sprites/characters/red/frame-1.png";
+import sprite2 from "/src/assets/sprites/characters/red/frame-2.png";
+import sprite3 from "/src/assets/sprites/characters/brown/frame-1.png";
+import sprite4 from "/src/assets/sprites/characters/brown/frame-2.png";
+import sprite5 from "/src/assets/sprites/characters/orange/frame-1.png";
+import sprite6 from "/src/assets/sprites/characters/orange/frame-2.png";
+import sprite7 from "/src/assets/sprites/characters/yellow/frame-1.png";
+import sprite8 from "/src/assets/sprites/characters/yellow/frame-2.png";
+import sprite9 from "/src/assets/sprites/characters/lime/frame-1.png";
+import sprite10 from "/src/assets/sprites/characters/lime/frame-2.png";
+import sprite11 from "/src/assets/sprites/characters/green/frame-1.png";
+import sprite12 from "/src/assets/sprites/characters/green/frame-2.png";
+import sprite13 from "/src/assets/sprites/characters/cyan/frame-1.png";
+import sprite14 from "/src/assets/sprites/characters/cyan/frame-2.png";
+import sprite15 from "/src/assets/sprites/characters/blue/frame-1.png";
+import sprite16 from "/src/assets/sprites/characters/blue/frame-2.png";
+import sprite17 from "/src/assets/sprites/characters/navy/frame-1.png";
+import sprite18 from "/src/assets/sprites/characters/navy/frame-2.png";
+import sprite19 from "/src/assets/sprites/characters/purple/frame-1.png";
+import sprite20 from "/src/assets/sprites/characters/purple/frame-2.png";
+import sprite21 from "/src/assets/sprites/characters/magenta/frame-1.png";
+import sprite22 from "/src/assets/sprites/characters/magenta/frame-2.png";
+import sprite23 from "/src/assets/sprites/characters/pink/frame-1.png";
+import sprite24 from "/src/assets/sprites/characters/pink/frame-2.png";
+import sprite25 from "/src/assets/sprites/characters/gray/frame-1.png";
+import sprite26 from "/src/assets/sprites/characters/gray/frame-2.png";
 
 interface PlayerPositionAndColor {
   x: number;
@@ -54,58 +80,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   width,
 }) => {
   const colorToSpriteMap = {
-    "#ff0000": [
-      "/src/assets/sprites/characters/red/frame-1.png",
-      "/src/assets/sprites/characters/red/frame-2.png",
-    ],
-    "#994C00": [
-      "/src/assets/sprites/characters/brown/frame-1.png",
-      "/src/assets/sprites/characters/brown/frame-2.png",
-    ],
-    "#ff8000": [
-      "/src/assets/sprites/characters/orange/frame-1.png",
-      "/src/assets/sprites/characters/orange/frame-2.png",
-    ],
-    "#ffff00": [
-      "/src/assets/sprites/characters/yellow/frame-1.png",
-      "/src/assets/sprites/characters/yellow/frame-2.png",
-    ],
-    "#80ff00": [
-      "/src/assets/sprites/characters/lime/frame-1.png",
-      "/src/assets/sprites/characters/lime/frame-2.png",
-    ],
-    "#1FA61A": [
-      "/src/assets/sprites/characters/green/frame-1.png",
-      "/src/assets/sprites/characters/green/frame-2.png",
-    ],
-    "#00ffff": [
-      "/src/assets/sprites/characters/cyan/frame-1.png",
-      "/src/assets/sprites/characters/cyan/frame-2.png",
-    ],
-    "#0080ff": [
-      "/src/assets/sprites/characters/blue/frame-1.png",
-      "/src/assets/sprites/characters/blue/frame-2.png",
-    ],
-    "#0000ff": [
-      "/src/assets/sprites/characters/navy/frame-1.png",
-      "/src/assets/sprites/characters/navy/frame-2.png",
-    ],
-    "#8000ff": [
-      "/src/assets/sprites/characters/purple/frame-1.png",
-      "/src/assets/sprites/characters/purple/frame-2.png",
-    ],
-    "#ff0080": [
-      "/src/assets/sprites/characters/magenta/frame-1.png",
-      "/src/assets/sprites/characters/magenta/frame-2.png",
-    ],
-    "#ff8080": [
-      "/src/assets/sprites/characters/pink/frame-1.png",
-      "/src/assets/sprites/characters/pink/frame-2.png",
-    ],
-    "#808080": [
-      "/src/assets/sprites/characters/gray/frame-1.png",
-      "/src/assets/sprites/characters/gray/frame-2.png",
-    ],
+    "#ff0000": [sprite1, sprite2],
+    "#994C00": [sprite3, sprite4],
+    "#ff8000": [sprite5, sprite6],
+    "#ffff00": [sprite7, sprite8],
+    "#80ff00": [sprite9, sprite10],
+    "#1FA61A": [sprite11, sprite12],
+    "#00ffff": [sprite13, sprite14],
+    "#0080ff": [sprite15, sprite16],
+    "#0000ff": [sprite17, sprite18],
+    "#8000ff": [sprite19, sprite20],
+    "#ff0080": [sprite21, sprite22],
+    "#ff8080": [sprite23, sprite24],
+    "#808080": [sprite25, sprite26],
   };
   const [sprites, setSprites] = useState({} as any);
 
