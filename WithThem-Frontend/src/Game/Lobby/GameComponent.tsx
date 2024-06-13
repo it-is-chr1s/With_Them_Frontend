@@ -13,6 +13,7 @@ import TasksTodoList from "./Tasks/TasksTodoList";
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
+import Minimap from "../minimap/Minimap";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -342,7 +343,8 @@ const GameComponent: React.FC = () => {
 
   const handleMove = (direction: string) => {
     if (
-      startEmergencyMeeting || inChat ||
+      startEmergencyMeeting ||
+      inChat ||
       (currentTask?.task === "FileDownloadUpload" &&
         (currentTask?.status === "Download" ||
           (currentTask?.status === "Upload" && currentTask?.progress >= 0))) ||
@@ -532,6 +534,18 @@ const GameComponent: React.FC = () => {
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
         <PlayerControls onMove={handleMove} />
+        <div className=" absolute top-3 right-[50%] p-4 rounded-md bg-blue-600">
+          <Minimap
+            walls={walls}
+            tasks={tasks}
+            playerPosition={{
+              x: players?.get(name)?.x,
+              y: players?.get(name)?.y,
+            }}
+            width={150}
+            height={100}
+          />
+        </div>
         <GameCanvas
           players={players}
           height={mapHeight}
