@@ -342,7 +342,7 @@ const GameComponent: React.FC = () => {
 
   const handleMove = (direction: string) => {
     if (
-      startEmergencyMeeting ||
+      startEmergencyMeeting || inChat ||
       (currentTask?.task === "FileDownloadUpload" &&
         (currentTask?.status === "Download" ||
           (currentTask?.status === "Upload" && currentTask?.progress >= 0))) ||
