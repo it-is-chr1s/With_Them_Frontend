@@ -12,6 +12,7 @@ interface Message {
     _sender: string;
     _content: string;
 }
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Chat: React.FC<ChatProps> = ({ inLobby, gameId, name }) => {
     const stompClientChat = useRef<Client | null>(null);
@@ -20,12 +21,12 @@ const Chat: React.FC<ChatProps> = ({ inLobby, gameId, name }) => {
 
     useEffect(() => {
         stompClientChat.current = new Client({
-            brokerURL: "ws://localhost:4003/ws",
+            brokerURL: `ws://${apiUrl}:4003/ws`,
             onConnect: () => {
                 console.log("Connected to chat websocket");
                 if(inLobby){
                     // Call the backend endpoint to fetch chat messages
-                    fetch(`http://localhost:4003/chat/messages/${gameId}`)
+                    fetch(`http://${apiUrl}:4003/chat/messages/${gameId}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Failed to fetch chat messages');
