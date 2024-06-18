@@ -248,7 +248,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" + gameId + "/" + name,
+          "/topic/" + gameId + "/" + name+ "/onStart",
           (message) => {
             const roleTemp = JSON.parse(message.body);
 
