@@ -13,6 +13,7 @@ import TasksTodoList from "./Tasks/TasksTodoList";
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
+import HeartBeat from "./HeartBeat";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -531,6 +532,7 @@ const GameComponent: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
+      <HeartBeat gameId={gameId} name={name}></HeartBeat>
         <PlayerControls onMove={handleMove} />
         <GameCanvas
           players={players}
