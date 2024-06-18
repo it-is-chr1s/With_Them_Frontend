@@ -434,6 +434,19 @@ const GameComponent: React.FC = () => {
         destination: "/app/meeting/startMeeting",
         body: gameId,
       });
+      fetch(`http://${apiUrl}:4000/loadMeeting/${gameId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load meeting");
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading meeting:", error);
+      });
+
     }
   };
 
