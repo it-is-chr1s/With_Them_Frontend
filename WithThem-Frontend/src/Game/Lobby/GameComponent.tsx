@@ -79,6 +79,10 @@ const GameComponent: React.FC = () => {
   const [roleWon, setRoleWon] = useState(undefined);
   const [suspect, setSuspect] = useState<string | null>("");
   const [suspectRoll, setSuspectRoll] = useState<string | null>("");
+  const [killCooldown, setKillCooldown] = useState(false);
+  const [lastKillTime, setLastKillTime] = useState(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
   useEffect(() => {
     stompClientMeeting.current = new Client({
       brokerURL: `ws://${apiUrl}:4002/ws`,
@@ -385,6 +389,9 @@ const GameComponent: React.FC = () => {
         destination: "/app/kill",
         body: JSON.stringify({ gameId: gameId, killerId: name }),
       });
+      setLastKillTime(Date.now());
+      setKillCooldown(true);
+      setCooldownSeconds(20);
     }
   };
 
@@ -547,6 +554,74 @@ const GameComponent: React.FC = () => {
       }
     }
   }, [onMeetingField]);
+  const isInKillRange = (killerPos, targetPos) => {
+    if (killerPos == targetPos) return false;
+    const distance = Math.sqrt(
+      Math.pow(killerPos.x - targetPos.x, 2) +
+        Math.pow(killerPos.y - targetPos.y, 2)
+    );
+    const killRange = 1;
+    console.log("is in kill range: ", distance <= killRange);
+    return distance <= killRange;
+  };
+
+  const updateCanKillStatus = () => {
+    if (role !== 1 || !players.get(name)?.isAlive) {
+      setCanKill(false);
+      return;
+    }
+
+    const killerPos = players.get(name);
+    const canKill = Array.from(players.values()).some((player) => {
+      return (
+        player.isAlive && player.role !== 1 && isInKillRange(killerPos, player)
+      );
+    });
+
+    console.log("can kill: ", canKill);
+
+    setCanKill(canKill);
+  };
+
+  useEffect(() => {
+    if (!killCooldown) {
+      updateCanKillStatus();
+    }
+  }, [players, role, gameId]);
+
+  useEffect(() => {
+    let timer = null;
+    if (killCooldown) {
+      timer = setTimeout(() => {
+        setKillCooldown(false);
+      }, 20000); // 20 seconds cooldown
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [killCooldown]);
+
+  useEffect(() => {
+    let interval = null;
+    if (killCooldown && cooldownSeconds > 0) {
+      interval = setInterval(() => {
+        setCooldownSeconds((prevSeconds) => prevSeconds - 1);
+      }, 1000);
+    } else if (!killCooldown) {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [killCooldown, cooldownSeconds]);
+
+  useEffect(() => {
+    if (cooldownSeconds === 0 && killCooldown) {
+      setKillCooldown(false);
+    }
+  }, [cooldownSeconds, killCooldown]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
@@ -676,8 +751,12 @@ const GameComponent: React.FC = () => {
               {role == 1 && (
                 <InGameButton
                   onClick={handleKill}
-                  label="Kill"
-                  active={true} //TODO: replace with canKill
+                  label={`Kill ${
+                    cooldownSeconds > 0 && killCooldown
+                      ? `(${cooldownSeconds}s)`
+                      : ""
+                  }`}
+                  active={canKill && !killCooldown}
                 />
               )}
             </>
@@ -689,7 +768,7 @@ const GameComponent: React.FC = () => {
                 active={true}
               />
               <InGameButton onClick={toggleChat} label="Chat" active={true} />
-              <h1>GameID: {gameId}</h1>
+              <h1 className="text-xl text-white">GameID: {gameId}</h1>
               <ButtonComponent onClick={togglePopup} label="Choose color" />
               <Popup isOpen={inChat} onClose={toggleChat}>
                 <Chat inLobby={true} name={name} gameId={gameId}></Chat>
