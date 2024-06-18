@@ -13,6 +13,7 @@ import TasksTodoList from "./Tasks/TasksTodoList";
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
+import HeartBeat from "./HeartBeat";
 import Minimap from "../minimap/Minimap";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -180,7 +181,18 @@ const GameComponent: React.FC = () => {
           (message) => {
             const oc = JSON.parse(message.body);
             setOccupiedColors(oc);
-            console.log("OccupiedColors:", oc);
+          }
+        );
+        stompClientMap.current?.subscribe(
+          "/topic/" + gameId + "/remove",
+          (message) => {
+            const removedPlayer = message.body;
+            setPlayers((prevPlayers) => {
+              const newPlayers = new Map(prevPlayers);
+              newPlayers.delete(removedPlayer);
+              return newPlayers;
+            });
+            console.log("OccupiedColors:", removedPlayer);
           }
         );
 
@@ -188,8 +200,6 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/position",
           (message) => {
             const positionUpdate = JSON.parse(message.body);
-
-            //console.log("positionupdate: ", positionUpdate);
             setPlayers((prevPlayers) =>
               new Map(prevPlayers).set(positionUpdate.playerId, {
                 x: positionUpdate.position.x,
@@ -200,7 +210,6 @@ const GameComponent: React.FC = () => {
                 deathY: positionUpdate.deathPosition.y,
               })
             );
-            //console.log("players: ", players);
           }
         );
 
@@ -239,10 +248,8 @@ const GameComponent: React.FC = () => {
             "/controlsEnabled/emergencyMeetingReport",
           (message) => {
             if (message.body === "true") {
-              //console.log("CORPES" + true);
               setOnCorpes(true);
             } else {
-              //console.log("CORPES" + false);
               setOnCorpes(false);
             }
           }
@@ -263,7 +270,6 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/ready",
           (message) => {
             const roleTemp = JSON.parse(message.body);
-
             setStartGame(false);
           }
         );
@@ -435,6 +441,18 @@ const GameComponent: React.FC = () => {
         destination: "/app/meeting/startMeeting",
         body: gameId,
       });
+      fetch(`http://${apiUrl}:4000/loadMeeting/${gameId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to load meeting");
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading meeting:", error);
+        });
     }
   };
 
@@ -533,6 +551,7 @@ const GameComponent: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
+        <HeartBeat gameId={gameId} name={name}></HeartBeat>
         <PlayerControls onMove={handleMove} />
         <div className=" absolute top-3 right-[50%] p-4 rounded-md bg-blue-600">
           <Minimap

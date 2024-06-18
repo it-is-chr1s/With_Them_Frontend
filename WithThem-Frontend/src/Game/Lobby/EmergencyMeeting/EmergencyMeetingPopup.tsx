@@ -30,10 +30,10 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
     let timeout: ReturnType<typeof setTimeout>;
 
     if (isOpen) {
-      timeout = setTimeout(() => {
+      //timeout = setTimeout(() => {
         setVotingActive(true);
         startVoting();
-      }, 5000); // 5 seconds
+      //}, 5000); // 5 seconds
       fetch(`http://${apiUrl}:4000/game/${gameId}/players`)
         .then((response) => response.json())
         .then((data) => {
@@ -53,7 +53,6 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
-    if (votingActive) {
       interval = setInterval(() => {
         setRemainingTime((prevTime) => {
           if (prevTime <= 1) {
@@ -65,7 +64,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
           return prevTime - 1;
         });
       }, 1000); // Decrease time every second
-    }
+
 
     return () => {
       clearInterval(interval);
@@ -141,7 +140,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
       <div className="flex flex-col items-center justify-center h-full">
         <h1 className="text-black text-3xl mb-8">Emergency Meeting</h1>
         <h2 className="text-black text-xl mb-4">Alive:</h2>
-        {votingActive && isAlive && (
+        {isAlive && (
           <div className="items-center">
             <span className="ml-2 text-red-500 text-xl">
               ({remainingTime}s)
