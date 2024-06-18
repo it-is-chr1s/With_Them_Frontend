@@ -58,7 +58,6 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
           if (prevTime <= 1) {
             clearInterval(interval);
             setVotingActive(false);
-            fetchSuspect();
             return 0;
           }
           return prevTime - 1;
@@ -85,11 +84,10 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
       .catch((error) => {
         console.error("Error starting voting:", error);
       });
-
     setRemainingTime(45); // Reset the countdown timer
   };
 
-  const fetchSuspect = () => {
+  /*const fetchSuspect = () => {
     fetch(`http://${apiUrl}:4002/meeting/${gameId}/suspect`)
       .then((response) => {
         if (!response.ok) {
@@ -99,7 +97,7 @@ const EmergencyMeetingPopup: React.FC<EmergencyMeetingPopupProps> = ({
       })
       .then((data) => console.log("data after 45s suspect " + data))
       .catch((error) => console.error("Error fetching suspect:", error));
-  };
+  };*/
 
   const vote = () => {
     setVotingActive(false);
