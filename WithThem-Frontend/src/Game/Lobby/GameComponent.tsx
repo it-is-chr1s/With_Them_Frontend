@@ -180,16 +180,26 @@ const GameComponent: React.FC = () => {
           (message) => {
             const oc = JSON.parse(message.body);
             setOccupiedColors(oc);
-            console.log("OccupiedColors:", oc);
           }
         );
+        stompClientMap.current?.subscribe(
+          "/topic/" + gameId + "/remove",
+          (message) => {
+            const removedPlayer =message.body;
+            setPlayers(prevPlayers => {
+              const newPlayers = new Map(prevPlayers);
+              newPlayers.delete(removedPlayer);
+              return newPlayers;
+            });
+            console.log("OccupiedColors:", removedPlayer);
+          }
+        );
+       
 
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/position",
           (message) => {
             const positionUpdate = JSON.parse(message.body);
-
-            //console.log("positionupdate: ", positionUpdate);
             setPlayers((prevPlayers) =>
               new Map(prevPlayers).set(positionUpdate.playerId, {
                 x: positionUpdate.position.x,
@@ -200,7 +210,6 @@ const GameComponent: React.FC = () => {
                 deathY: positionUpdate.deathPosition.y,
               })
             );
-            //console.log("players: ", players);
           }
         );
 
@@ -212,11 +221,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" +
-            gameId +
-            "/player/" +
-            name +
-            "/controlsEnabled/emergencyMeeting",
+          "/topic/" +gameId +"/player/" +name +"/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
               fetch(`http://${apiUrl}:4002/meeting/${gameId}/startable`)
@@ -232,17 +237,11 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" +
-            gameId +
-            "/player/" +
-            name +
-            "/controlsEnabled/emergencyMeetingReport",
+          "/topic/" + gameId + "/player/" + name + "/controlsEnabled/emergencyMeetingReport",
           (message) => {
             if (message.body === "true") {
-              //console.log("CORPES" + true);
               setOnCorpes(true);
             } else {
-              //console.log("CORPES" + false);
               setOnCorpes(false);
             }
           }
@@ -263,7 +262,6 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/ready",
           (message) => {
             const roleTemp = JSON.parse(message.body);
-
             setStartGame(false);
           }
         );
