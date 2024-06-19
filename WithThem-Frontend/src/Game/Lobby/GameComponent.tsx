@@ -15,6 +15,7 @@ import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
 import HeartBeat from "./HeartBeat";
 import Minimap from "../minimap/Minimap";
+import MinimapPopup from "../../components/MinimapPopup";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -61,6 +62,7 @@ const GameComponent: React.FC = () => {
   >(new Map());
 
   const isPlayerAlive = players.get(name)?.isAlive || false;
+  const [minimapPopupOpen, setMinimapPopupOpen] = useState(false);
 
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
@@ -190,11 +192,15 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" + gameId + "/player/"+ name + "/removed",
+          "/topic/" + gameId + "/player/" + name + "/removed",
           (message) => {
             const dateTime = message.body;
+<<<<<<< HEAD
             console.log("YOU WERE REMOVED: "+dateTime);
             setIsRunning(false);
+=======
+            console.log("YOU WERE REMOVED: " + dateTime);
+>>>>>>> 7b41b634635617adc166394e759a9f4203123236
             setWasRemoved(true);
           }
         );
@@ -268,7 +274,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" + gameId + "/" + name+ "/onStart",
+          "/topic/" + gameId + "/" + name + "/onStart",
           (message) => {
             const roleTemp = JSON.parse(message.body);
 
@@ -631,6 +637,9 @@ const GameComponent: React.FC = () => {
     }
   }, [cooldownSeconds, killCooldown]);
 
+  const toggleMinimapPopup = () => {
+    setMinimapPopupOpen(!minimapPopupOpen);
+  };
   const closeRemoved = () => {
     setWasRemoved(false);
     navigate("/");
@@ -641,18 +650,36 @@ const GameComponent: React.FC = () => {
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
         <HeartBeat gameId={gameId} name={name}></HeartBeat>
         <PlayerControls onMove={handleMove} />
-        <div className=" absolute top-3 right-[50%] p-4 rounded-md bg-blue-600">
-          <Minimap
-            walls={walls}
-            tasks={tasks}
-            playerPosition={{
-              x: players?.get(name)?.x,
-              y: players?.get(name)?.y,
-            }}
-            width={150}
-            height={100}
-          />
-        </div>
+        {isRunning && (
+          <div
+            className=" absolute top-3 right-[50%] p-4 rounded-md bg-blue-600 cursor-pointer"
+            onClick={toggleMinimapPopup}
+          >
+            <Minimap
+              walls={walls}
+              tasks={tasks}
+              playerPosition={{
+                x: players?.get(name)?.x,
+                y: players?.get(name)?.y,
+              }}
+              width={150}
+              height={90}
+              scaleFactor={2}
+            />
+          </div>
+        )}
+        <MinimapPopup isOpen={minimapPopupOpen} onClose={toggleMinimapPopup}>
+          <div style={{ width: "900px", height: "600px" }}>
+            <Minimap
+              walls={walls}
+              tasks={tasks}
+              playerPosition={players.get(name) || { x: 0, y: 0 }}
+              width={150 * 6}
+              height={90 * 6}
+              scaleFactor={12}
+            />
+          </div>
+        </MinimapPopup>
         <GameCanvas
           players={players}
           height={mapHeight}
@@ -719,7 +746,9 @@ const GameComponent: React.FC = () => {
           <h2 className="font-mono font-bold text-xl mb-6">{suspect}</h2>
         </Popup>
         <Popup isOpen={wasRemoved} onClose={closeRemoved}>
-          <h2 className="font-mono font-bold text-xl mb-6">You were not acctive. you were removed from the game {gameId}</h2>
+          <h2 className="font-mono font-bold text-xl mb-6">
+            You were not acctive. you were removed from the game {gameId}
+          </h2>
         </Popup>
         <Popup
           isOpen={roleWon != null}
