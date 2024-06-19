@@ -195,12 +195,8 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/player/" + name + "/removed",
           (message) => {
             const dateTime = message.body;
-<<<<<<< HEAD
             console.log("YOU WERE REMOVED: "+dateTime);
             setIsRunning(false);
-=======
-            console.log("YOU WERE REMOVED: " + dateTime);
->>>>>>> 7b41b634635617adc166394e759a9f4203123236
             setWasRemoved(true);
           }
         );
