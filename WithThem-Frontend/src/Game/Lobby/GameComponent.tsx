@@ -194,6 +194,7 @@ const GameComponent: React.FC = () => {
           (message) => {
             const dateTime = message.body;
             console.log("YOU WERE REMOVED: "+dateTime);
+            setIsRunning(false);
             setWasRemoved(true);
           }
         );
@@ -236,11 +237,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" +
-            gameId +
-            "/player/" +
-            name +
-            "/controlsEnabled/emergencyMeeting",
+          "/topic/" +gameId +"/player/" +name +"/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
               fetch(`http://${apiUrl}:4002/meeting/${gameId}/startable`)
@@ -636,9 +633,9 @@ const GameComponent: React.FC = () => {
 
   const closeRemoved = () => {
     setWasRemoved(false);
-        navigate("/");
-
+    navigate("/");
   };
+
   return (
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
