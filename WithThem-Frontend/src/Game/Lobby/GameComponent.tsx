@@ -84,6 +84,7 @@ const GameComponent: React.FC = () => {
   const [killCooldown, setKillCooldown] = useState(false);
   const [lastKillTime, setLastKillTime] = useState(null);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [wasRemoved, setWasRemoved] = useState(false);
 
   useEffect(() => {
     stompClientMeeting.current = new Client({
@@ -189,6 +190,16 @@ const GameComponent: React.FC = () => {
             setOccupiedColors(oc);
           }
         );
+
+        stompClientMap.current?.subscribe(
+          "/topic/" + gameId + "/player/" + name + "/removed",
+          (message) => {
+            const dateTime = message.body;
+            console.log("YOU WERE REMOVED: " + dateTime);
+            setWasRemoved(true);
+          }
+        );
+
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/remove",
           (message) => {
@@ -628,7 +639,10 @@ const GameComponent: React.FC = () => {
   const toggleMinimapPopup = () => {
     setMinimapPopupOpen(!minimapPopupOpen);
   };
-
+  const closeRemoved = () => {
+    setWasRemoved(false);
+    navigate("/");
+  };
   return (
     <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
       <div className="flex justify-center items-center w-full h-full overflow-hidden">
@@ -728,6 +742,11 @@ const GameComponent: React.FC = () => {
           <h2 className="font-mono font-bold text-xl mb-6">Kicked Out:</h2>
           <h2 className="font-mono font-bold text-xl mb-6">{suspectRoll}</h2>
           <h2 className="font-mono font-bold text-xl mb-6">{suspect}</h2>
+        </Popup>
+        <Popup isOpen={wasRemoved} onClose={closeRemoved}>
+          <h2 className="font-mono font-bold text-xl mb-6">
+            You were not acctive. you were removed from the game {gameId}
+          </h2>
         </Popup>
         <Popup
           isOpen={roleWon != null}
