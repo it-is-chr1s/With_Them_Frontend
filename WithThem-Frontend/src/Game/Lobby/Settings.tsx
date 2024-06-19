@@ -12,6 +12,9 @@ type SettingsProps = {
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
 export default function Settings({ gameId, name }: SettingsProps) {
 	const [settings, setSettings] = useState<Settings>();
 	const [fetchTrigger, setFetchTrigger] = useState(false);
@@ -23,14 +26,15 @@ export default function Settings({ gameId, name }: SettingsProps) {
 			},
 		})
 			.then((response) => {
-				console.log(response);
 				if (!response.ok) {
-					console.log(gameId);
+					console.log("error");
 					throw new Error("Failed to fetch settings");
 				}
+				console.log(response);
 				return response.json();
 			})
 			.then((json) => {
+				console.log(json);
 				setSettings({
 					maxPlayers: json.maxPlayers,
 					imposters: json.imposters,
@@ -81,6 +85,7 @@ export default function Settings({ gameId, name }: SettingsProps) {
 				},
 			}
 		).then((response) => {
+			console.log("ok");
 			if (response.ok) {
 				if (id === "maxPlayers") {
 					setSettings({
@@ -97,7 +102,6 @@ export default function Settings({ gameId, name }: SettingsProps) {
 				}
 			}
 		});
-		setFetchTrigger((prev) => !prev);
 	}
 	return (
 		<div className="absolute top-10 left-20">
