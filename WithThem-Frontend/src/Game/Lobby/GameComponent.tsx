@@ -175,7 +175,7 @@ const GameComponent: React.FC = () => {
         stompClientSabotages.current?.subscribe(
           "/topic/tasks/" + GameId + "/information",
           (message) => {
-            console.log(message);
+            console.log(JSON.parse(message.body));
           }
         );
       },
@@ -640,6 +640,17 @@ const GameComponent: React.FC = () => {
     setCanKill(canKill);
   };
 
+  const copyGameId = () => {
+    navigator.clipboard.writeText(gameId).then(
+      () => {
+        console.log('gameId copied to clipboard');
+      },
+      (err) => {
+        console.error('Failed to copy text: ', err);
+      }
+    );
+  }
+
   useEffect(() => {
     if (!killCooldown) {
       updateCanKillStatus();
@@ -792,7 +803,7 @@ const GameComponent: React.FC = () => {
         </Popup>
         <Popup isOpen={wasRemoved} onClose={closeRemoved}>
           <h2 className="font-mono font-bold text-xl mb-6">
-            You were not acctive. you were removed from the game {gameId}
+            You were not active. you were removed from the game {gameId}
           </h2>
         </Popup>
         <Popup
@@ -827,38 +838,59 @@ const GameComponent: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-row items-end space-y-2">
           {isRunning ? (
             <>
-              {isPlayerAlive && (
-                <InGameButton
-                  onClick={startMeeting}
-                  label="Meeting"
-                  active={onMeetingField || onCorpes}
-                />
-              )}
-              <InGameButton onClick={use} label="Use" active={useEnabled} />
               {role == 1 && (
-				<>
-                <InGameButton
-                  onClick={handleKill}
-                  label="Kill"
-                  active={true} //TODO: replace with canKill
-                />
-				<InGameButton onClick={callSabotage} label={"Sabotage " + cooldown} active={true} />
-				</>
+				        <div className="flex flex-col mr-2">
+                  <div className="mb-2">
+                    <InGameButton
+                      onClick={handleKill}
+                      label={`Kill ${
+                        cooldownSeconds > 0 && killCooldown
+                          ? `(${cooldownSeconds}s)`
+                          : ""
+                      }`}
+                      active={canKill && !killCooldown}
+                    />
+                  </div>
+                  <InGameButton
+                    onClick={callSabotage}
+                    label={`Sabotage ${
+                      cooldown > 0 && `(${cooldown}s)`}`}
+                    active={true}
+                  />
+				        </div>
               )}
+              <div className="flex flex-col">
+                <div className="mb-2">
+                  <InGameButton onClick={use} label="Use" active={useEnabled} />
+                </div>
+                {isPlayerAlive && (
+                  <InGameButton
+                    onClick={startMeeting}
+                    label="Meeting"
+                    active={onMeetingField || onCorpes}
+                  />
+                )}
+              </div>
             </>
           ) : (
-            <>
-              <InGameButton
-                onClick={startGameFunction}
-                label="start Game"
-                active={true}
-              />
-              <InGameButton onClick={toggleChat} label="Chat" active={true} />
-              <h1 className="text-xl text-white">GameID: {gameId}</h1>
-              <ButtonComponent onClick={togglePopup} label="Choose color" />
+            <div className="flex flex-col">
+              <div className="flex flex-row mb-2">
+                <div className="mr-2">
+                  <InGameButton
+                    onClick={startGameFunction}
+                    label="Start Game"
+                    active={true}
+                  />
+                </div>
+                <div className="mr-2">
+                  <InGameButton onClick={toggleChat} label="Chat" active={true} />
+                </div>
+                <InGameButton onClick={togglePopup} label="Choose Color" active={true} />
+              </div>
+              <ButtonComponent onClick={copyGameId} label={"Copy GameID: " + gameId} />
               <Popup isOpen={inChat} onClose={toggleChat}>
                 <Chat inLobby={true} name={name} gameId={gameId}></Chat>
               </Popup>
@@ -868,7 +900,7 @@ const GameComponent: React.FC = () => {
                 onClose={togglePopup}
                 onColorSelect={handleColorSelect}
               />
-            </>
+            </div>
           )}
         </div>
         {!isRunning && <Settings gameId={gameId} name={name} />}
