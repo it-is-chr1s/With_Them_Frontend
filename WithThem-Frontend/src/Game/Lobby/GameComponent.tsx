@@ -17,11 +17,23 @@ import HeartBeat from "./HeartBeat";
 import Minimap from "../minimap/Minimap";
 import MinimapPopup from "../../components/MinimapPopup";
 
+interface Sabotage{
+  [key: number]: string;
+}
+
+interface SabotageData{
+  availableSabotages: Sabotage[];
+  cooldown: number;
+  currentSabotageID: number;
+  timer: number;
+}
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inChat, setInChat] = useState(false);
+  const [sabotageListIsOpen, setSabotageListIsOpen] = useState(false);
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
@@ -29,6 +41,10 @@ const GameComponent: React.FC = () => {
   const toggleChat = () => {
     setInChat(!inChat);
   };
+  const toggleSabotageList = () => {
+    setSabotageListIsOpen(!sabotageListIsOpen);
+  };
+
   const navigate = useNavigate();
   const leaveGame = () => {
     navigate("/");
@@ -88,7 +104,7 @@ const GameComponent: React.FC = () => {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [wasRemoved, setWasRemoved] = useState(false);
 
-  const [cooldown, setCooldown] = useState<number>(0);
+  const [sabotageData, setSabotageData] = useState<SabotageData>({availableSabotages: [], cooldown: 0, currentSabotageID: -1, timer: 0});
 
   useEffect(() => {
     stompClientMeeting.current = new Client({
@@ -173,8 +189,9 @@ const GameComponent: React.FC = () => {
         console.log("Connected to sabotage websocket");
 
         stompClientSabotages.current?.subscribe(
-          "/topic/tasks/" + GameId + "/information",
+          "/topic/sabotages/" + GameId + "/information",
           (message) => {
+            setSabotageData(JSON.parse(message.body));
             console.log(JSON.parse(message.body));
           }
         );
@@ -438,11 +455,17 @@ const GameComponent: React.FC = () => {
     }
   };
 
-  	const callSabotage = () => {
-		stompClientSabotages.current?.publish({
-		  destination: "/app/sabotages/startSabotage",
-		  body: gameId
-		});
+  	const callSabotage = (sabotageId: number) => {
+      const data = {
+        gameId: gameId,
+        sabotageId: sabotageId
+      }
+
+      toggleSabotageList();
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/startSabotage",
+        body: JSON.stringify(data)
+      });
 	}
 
   const handleColorSelect = (color: string) => {
@@ -793,6 +816,26 @@ const GameComponent: React.FC = () => {
           name={name}
         />
 
+        <Popup isOpen={sabotageListIsOpen} onClose={toggleSabotageList}>
+          <h2 className="font-mono font-bold text-xl mb-6">Choose A Sabotage</h2>
+        <div className="flex flex-col items-center space-y-4">
+            {sabotageData.availableSabotages.map((sabotage, index) => (
+              <React.Fragment key={index}>
+                {Object.entries(sabotage).map(([key, value]) => (
+                  <div key={key} className="flex flex-row items-center space-x-4">
+                    <button
+                      className="bg-blue-600 text-white p-2 rounded-md"
+                      onClick={() => callSabotage(Number(key))}
+                    >
+                      {value}
+                    </button>
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+        </Popup>
+
         <Popup
           isOpen={suspect !== "" && suspect !== null}
           onClose={closeSuspect}
@@ -855,9 +898,10 @@ const GameComponent: React.FC = () => {
                     />
                   </div>
                   <InGameButton
-                    onClick={callSabotage}
-                    label={`Sabotage ${
-                      cooldown > 0 && `(${cooldown}s)`}`}
+                    onClick={toggleSabotageList}
+                    label={`Sabotage${
+                      (sabotageData.cooldown > 0) ? ` (${sabotageData.cooldown}s)` : ''
+                    }`}
                     active={true}
                   />
 				        </div>
