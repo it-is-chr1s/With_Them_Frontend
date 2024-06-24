@@ -75,7 +75,7 @@ const GameComponent: React.FC = () => {
   const [currentTask, setCurrentTask] = useState(null);
   const [mapHeight, setMapHeight] = useState(0);
   const [mapWidth, setMapWidth] = useState(0);
-  const [imposters, setImposters] = useState([]);
+  const [imposters, setImposters] = useState<string[]>([]);
   const [role, setRole] = useState(0);
   const [startGame, setStartGame] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -585,11 +585,18 @@ const GameComponent: React.FC = () => {
     }
 
     const killerPos = players.get(name);
+    let canKill = false;
+    for(const [key, player] of players){
+      if (player.isAlive && !imposters.includes(key) && isInKillRange(killerPos, player)) {
+        canKill = true;
+        break;
+      }
+    }/*
     const canKill = Array.from(players.values()).some((player) => {
       return (
         player.isAlive && player.role !== 1 && isInKillRange(killerPos, player)
       );
-    });
+    });*/
 
     console.log("can kill: ", canKill);
 
