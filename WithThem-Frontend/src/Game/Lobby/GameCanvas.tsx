@@ -1,5 +1,31 @@
 // GameCanvas.tsx
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import sprite1 from "/src/assets/sprites/characters/red/frame-1.png";
+import sprite2 from "/src/assets/sprites/characters/red/frame-2.png";
+import sprite3 from "/src/assets/sprites/characters/brown/frame-1.png";
+import sprite4 from "/src/assets/sprites/characters/brown/frame-2.png";
+import sprite5 from "/src/assets/sprites/characters/orange/frame-1.png";
+import sprite6 from "/src/assets/sprites/characters/orange/frame-2.png";
+import sprite7 from "/src/assets/sprites/characters/yellow/frame-1.png";
+import sprite8 from "/src/assets/sprites/characters/yellow/frame-2.png";
+import sprite9 from "/src/assets/sprites/characters/lime/frame-1.png";
+import sprite10 from "/src/assets/sprites/characters/lime/frame-2.png";
+import sprite11 from "/src/assets/sprites/characters/green/frame-1.png";
+import sprite12 from "/src/assets/sprites/characters/green/frame-2.png";
+import sprite13 from "/src/assets/sprites/characters/cyan/frame-1.png";
+import sprite14 from "/src/assets/sprites/characters/cyan/frame-2.png";
+import sprite15 from "/src/assets/sprites/characters/blue/frame-1.png";
+import sprite16 from "/src/assets/sprites/characters/blue/frame-2.png";
+import sprite17 from "/src/assets/sprites/characters/navy/frame-1.png";
+import sprite18 from "/src/assets/sprites/characters/navy/frame-2.png";
+import sprite19 from "/src/assets/sprites/characters/purple/frame-1.png";
+import sprite20 from "/src/assets/sprites/characters/purple/frame-2.png";
+import sprite21 from "/src/assets/sprites/characters/magenta/frame-1.png";
+import sprite22 from "/src/assets/sprites/characters/magenta/frame-2.png";
+import sprite23 from "/src/assets/sprites/characters/pink/frame-1.png";
+import sprite24 from "/src/assets/sprites/characters/pink/frame-2.png";
+import sprite25 from "/src/assets/sprites/characters/gray/frame-1.png";
+import sprite26 from "/src/assets/sprites/characters/gray/frame-2.png";
 
 interface PlayerPositionAndColor {
   x: number;
@@ -24,6 +50,8 @@ interface TaskPosition {
 
 interface GameCanvasProps {
   players: Map<string, PlayerPositionAndColor>;
+  imposters: string[];
+  role: number;
   walls: Position[];
   tasks: TaskPosition[];
   meeting: Position;
@@ -38,13 +66,15 @@ type IdColors = {
 };
 
 const cellSize = 30;
-const cavnasHeight = 9 * 3;
-const cavnasWidth = 16 * 3;
+const cavnasHeight = 9 * 4 * cellSize;
+const cavnasWidth = 16 * 4 * cellSize;
 
 const idColors = {} as IdColors;
 
 const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
+  imposters,
+  role,
   walls,
   tasks,
   meeting,
@@ -53,6 +83,46 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   height,
   width,
 }) => {
+  const colorToSpriteMap = {
+    "#ff0000": [sprite1, sprite2],
+    "#994C00": [sprite3, sprite4],
+    "#ff8000": [sprite5, sprite6],
+    "#ffff00": [sprite7, sprite8],
+    "#80ff00": [sprite9, sprite10],
+    "#1FA61A": [sprite11, sprite12],
+    "#00ffff": [sprite13, sprite14],
+    "#0080ff": [sprite15, sprite16],
+    "#0000ff": [sprite17, sprite18],
+    "#8000ff": [sprite19, sprite20],
+    "#ff0080": [sprite21, sprite22],
+    "#ff8080": [sprite23, sprite24],
+    "#808080": [sprite25, sprite26],
+  };
+  const [sprites, setSprites] = useState({} as any);
+
+  useEffect(() => {
+    const loadedSprites = {} as any;
+    Object.entries(colorToSpriteMap).forEach(([color, paths]) => {
+      loadedSprites[color] = paths.map((path) => {
+        const img = new Image();
+        img.src = path;
+        img.onload = () => console.log(`Sprite for ${color} loaded`);
+        return img;
+      });
+    });
+    setSprites(loadedSprites);
+  }, []);
+
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFrameIndex((prevIndex) => (prevIndex + 1) % 2);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawGame = () => {
@@ -195,40 +265,52 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
         });
       });
 
-      // Draw players
       players.forEach((position, playerId) => {
-        //console.log("player position: ", position.x, position.y);
-        const currentPlayer = players.get(name);
-        const isCurrentPlayer = playerId === name;
-
-        context.fillStyle = position.color;
         if (
           position.isAlive ||
-          isCurrentPlayer ||
-          (currentPlayer && !currentPlayer.isAlive && !position.isAlive)
+          playerId === name ||
+          (!position.isAlive && !players.get(name)?.isAlive)
         ) {
+          const spriteWidth = cellSize;
+          const spriteHeight = cellSize;
+          let imageX = position.x * cellSize - spriteWidth / 2;
+          let imageY = position.y * cellSize - spriteHeight / 2;
+
           if (!position.isAlive) {
-            context.fillStyle = "gray";
+            context.globalAlpha = 0.5;
           }
-          context.beginPath();
-          context.arc(
-            position.x * cellSize,
-            position.y * cellSize,
-            10,
-            0,
-            2 * Math.PI
-          );
-          context.fill();
+
+          const spritesForColor = sprites[position.color];
+          if (spritesForColor && spritesForColor.length > frameIndex) {
+            context.drawImage(
+              spritesForColor[frameIndex],
+              imageX,
+              imageY,
+              spriteWidth,
+              spriteHeight
+            );
+          }
+
+          context.globalAlpha = 1.0;
+          context.fillStyle = position.color;
           context.font = "8px Arial";
           context.fillText(
             playerId,
             position.x * cellSize,
             (position.y - 0.5) * cellSize
           );
-          context.fill();
+          if(role == 1 && imposters.includes(playerId)){
+            context.fillText(
+              "Imposter",
+              position.x * cellSize,
+              (position.y + 0.65) * cellSize
+            )
+          }
         }
+
         if (!position.isAlive) {
           context.strokeStyle = position.color;
+          context.fillStyle = position.color;
           context.beginPath();
           context.lineWidth = 3;
           context.moveTo(
@@ -255,8 +337,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
             (position.deathY - 0.5) * cellSize
           );
         }
-
-        context.fill();
       });
 
       context.restore();
@@ -286,9 +366,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
 
   return (
     <canvas
+      className="overflow-hidden"
       ref={canvasRef}
-      width={cavnasWidth * cellSize}
-      height={cavnasHeight * cellSize}
+      width={cavnasWidth}
+      height={cavnasHeight}
       style={{ border: "1px solid #000" }}
     ></canvas>
   );

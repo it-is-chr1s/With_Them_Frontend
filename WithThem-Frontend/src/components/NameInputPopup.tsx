@@ -68,7 +68,7 @@ const NameInputPopup: React.FC<NameInputPopupProps> = ({
               console.log("Join2: " + initialGameId);
               canJoin = true;
             } else {
-              console.log("Join3: " + initialGameId);
+              console.log("Can NOT Join2: " + initialGameId);
               console.log("CHECK false" + data);
               canJoin = false;
             }

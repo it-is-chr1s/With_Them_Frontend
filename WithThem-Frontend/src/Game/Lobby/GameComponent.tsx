@@ -2,17 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import GameCanvas from "./GameCanvas";
 import PlayerControls from "./PlayerControls";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent";
 import ChooseColorPopup from "../../components/ChooseCollorPopup";
 import InGameButton from "../../components/InGameButton";
 import Popup from "../../components/Popup";
 import ConnectingWires from "./Tasks/ConnectingWires";
 import FileUploadDownload from "./Tasks/FileUploadDownload";
-import TasksTodoList from "./Tasks/TasksTodoList"; //
+import TasksTodoList from "./Tasks/TasksTodoList";
 import EmergencyMeetingPopup from "./EmergencyMeeting/EmergencyMeetingPopup";
 import Settings from "./Settings";
 import Chat from "./EmergencyMeeting/Chat";
+import HeartBeat from "./HeartBeat";
+import Minimap from "../minimap/Minimap";
+import MinimapPopup from "../../components/MinimapPopup";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -25,6 +28,10 @@ const GameComponent: React.FC = () => {
   };
   const toggleChat = () => {
     setInChat(!inChat);
+  };
+  const navigate = useNavigate();
+  const leaveGame = () => {
+    navigate("/");
   };
   const [startEmergencyMeeting, setStartMeeting] = useState(false);
   const [occupiedColors, setOccupiedColors] = useState<string[] | null>([
@@ -56,6 +63,7 @@ const GameComponent: React.FC = () => {
   >(new Map());
 
   const isPlayerAlive = players.get(name)?.isAlive || false;
+  const [minimapPopupOpen, setMinimapPopupOpen] = useState(false);
 
   const [useEnabled, setUseEnabled] = useState<boolean>(false);
   const [onMeetingField, setOnMeetingField] = useState<boolean>(false);
@@ -68,12 +76,18 @@ const GameComponent: React.FC = () => {
   const [currentTask, setCurrentTask] = useState(null);
   const [mapHeight, setMapHeight] = useState(0);
   const [mapWidth, setMapWidth] = useState(0);
+  const [imposters, setImposters] = useState<string[]>([]);
   const [role, setRole] = useState(0);
   const [startGame, setStartGame] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [roleWon, setRoleWon] = useState(undefined);
   const [suspect, setSuspect] = useState<string | null>("");
   const [suspectRoll, setSuspectRoll] = useState<string | null>("");
+  const [killCooldown, setKillCooldown] = useState(false);
+  const [lastKillTime, setLastKillTime] = useState(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [wasRemoved, setWasRemoved] = useState(false);
+
   const [cooldown, setCooldown] = useState<number>(0);
 
   useEffect(() => {
@@ -202,7 +216,29 @@ const GameComponent: React.FC = () => {
           (message) => {
             const oc = JSON.parse(message.body);
             setOccupiedColors(oc);
-            console.log("OccupiedColors:", oc);
+          }
+        );
+
+        stompClientMap.current?.subscribe(
+          "/topic/" + gameId + "/player/" + name + "/removed",
+          (message) => {
+            const dateTime = message.body;
+            console.log("YOU WERE REMOVED: "+dateTime);
+            setIsRunning(false);
+            setWasRemoved(true);
+          }
+        );
+
+        stompClientMap.current?.subscribe(
+          "/topic/" + gameId + "/remove",
+          (message) => {
+            const removedPlayer = message.body;
+            setPlayers((prevPlayers) => {
+              const newPlayers = new Map(prevPlayers);
+              newPlayers.delete(removedPlayer);
+              return newPlayers;
+            });
+            console.log("OccupiedColors:", removedPlayer);
           }
         );
 
@@ -210,8 +246,6 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/position",
           (message) => {
             const positionUpdate = JSON.parse(message.body);
-
-            //console.log("positionupdate: ", positionUpdate);
             setPlayers((prevPlayers) =>
               new Map(prevPlayers).set(positionUpdate.playerId, {
                 x: positionUpdate.position.x,
@@ -222,7 +256,6 @@ const GameComponent: React.FC = () => {
                 deathY: positionUpdate.deathPosition.y,
               })
             );
-            //console.log("players: ", players);
           }
         );
 
@@ -234,11 +267,7 @@ const GameComponent: React.FC = () => {
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" +
-            gameId +
-            "/player/" +
-            name +
-            "/controlsEnabled/emergencyMeeting",
+          "/topic/" +gameId +"/player/" +name +"/controlsEnabled/emergencyMeeting",
           (message) => {
             if (message.body === "true") {
               fetch(`http://${apiUrl}:4002/meeting/${gameId}/startable`)
@@ -261,23 +290,22 @@ const GameComponent: React.FC = () => {
             "/controlsEnabled/emergencyMeetingReport",
           (message) => {
             if (message.body === "true") {
-              //console.log("CORPES" + true);
               setOnCorpes(true);
             } else {
-              //console.log("CORPES" + false);
               setOnCorpes(false);
             }
           }
         );
 
         stompClientMap.current?.subscribe(
-          "/topic/" + gameId + "/" + name,
+          "/topic/" + gameId + "/" + name + "/onStart",
           (message) => {
-            const roleTemp = JSON.parse(message.body);
+            const impostersTemp = JSON.parse(message.body);
 
-            console.log("Role updates received", roleTemp);
+            console.log("Role updates received", impostersTemp);
             setIsRunning(true);
-            setRole(roleTemp);
+            setImposters(impostersTemp);
+            setRole(impostersTemp.includes(name) ? 1 : 0);
             setStartGame(true);
           }
         );
@@ -285,7 +313,6 @@ const GameComponent: React.FC = () => {
           "/topic/" + gameId + "/ready",
           (message) => {
             const roleTemp = JSON.parse(message.body);
-
             setStartGame(false);
           }
         );
@@ -296,6 +323,7 @@ const GameComponent: React.FC = () => {
             console.log("Game Won by ", message.body);
             setIsRunning(false);
             setRole(0);
+            setImposters([]);
             setRoleWon(message.body);
           }
         );
@@ -346,7 +374,38 @@ const GameComponent: React.FC = () => {
     handleMove("NONE");
   }, []);
 
+  useEffect(() => {
+    const fetchGameState = async () => {
+      try {
+        const response = await fetch(
+          `http://${apiUrl}:4000/requestGameState/${gameId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setIsRunning(data.isRunning);
+        } else {
+          console.error("Failed to fetch game state:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching game state:", error);
+      }
+    };
+
+    fetchGameState();
+  }, [gameId, apiUrl]);
+
   const handleMove = (direction: string) => {
+    if (
+      startEmergencyMeeting ||
+      inChat ||
+      (currentTask?.task === "FileDownloadUpload" &&
+        (currentTask?.status === "Download" ||
+          (currentTask?.status === "Upload" && currentTask?.progress >= 0))) ||
+      currentTask?.task === "Connecting Wires"
+    ) {
+      return;
+    }
+
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
         destination: "/app/move",
@@ -373,6 +432,9 @@ const GameComponent: React.FC = () => {
         destination: "/app/kill",
         body: JSON.stringify({ gameId: gameId, killerId: name }),
       });
+      setLastKillTime(Date.now());
+      setKillCooldown(true);
+      setCooldownSeconds(20);
     }
   };
 
@@ -436,6 +498,18 @@ const GameComponent: React.FC = () => {
         destination: "/app/meeting/startMeeting",
         body: gameId,
       });
+      fetch(`http://${apiUrl}:4000/loadMeeting/${gameId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to load meeting");
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading meeting:", error);
+        });
     }
   };
 
@@ -530,13 +604,129 @@ const GameComponent: React.FC = () => {
       }
     }
   }, [onMeetingField]);
+  const isInKillRange = (killerPos, targetPos) => {
+    if (killerPos == targetPos) return false;
+    const distance = Math.sqrt(
+      Math.pow(killerPos.x - targetPos.x, 2) +
+        Math.pow(killerPos.y - targetPos.y, 2)
+    );
+    const killRange = 1;
+    console.log("is in kill range: ", distance <= killRange);
+    return distance <= killRange;
+  };
+
+  const updateCanKillStatus = () => {
+    if (role !== 1 || !players.get(name)?.isAlive) {
+      setCanKill(false);
+      return;
+    }
+
+    const killerPos = players.get(name);
+    let canKill = false;
+    for(const [key, player] of players){
+      if (player.isAlive && !imposters.includes(key) && isInKillRange(killerPos, player)) {
+        canKill = true;
+        break;
+      }
+    }/*
+    const canKill = Array.from(players.values()).some((player) => {
+      return (
+        player.isAlive && player.role !== 1 && isInKillRange(killerPos, player)
+      );
+    });*/
+
+    console.log("can kill: ", canKill);
+
+    setCanKill(canKill);
+  };
+
+  useEffect(() => {
+    if (!killCooldown) {
+      updateCanKillStatus();
+    }
+  }, [players, role, gameId]);
+
+  useEffect(() => {
+    let timer = null;
+    if (killCooldown) {
+      timer = setTimeout(() => {
+        setKillCooldown(false);
+      }, 20000); // 20 seconds cooldown
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [killCooldown]);
+
+  useEffect(() => {
+    let interval = null;
+    if (killCooldown && cooldownSeconds > 0) {
+      interval = setInterval(() => {
+        setCooldownSeconds((prevSeconds) => prevSeconds - 1);
+      }, 1000);
+    } else if (!killCooldown) {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [killCooldown, cooldownSeconds]);
+
+  useEffect(() => {
+    if (cooldownSeconds === 0 && killCooldown) {
+      setKillCooldown(false);
+    }
+  }, [cooldownSeconds, killCooldown]);
+
+  const toggleMinimapPopup = () => {
+    setMinimapPopupOpen(!minimapPopupOpen);
+  };
+  const closeRemoved = () => {
+    setWasRemoved(false);
+    navigate("/");
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="flex justify-center items-center w-full h-full">
+    <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
+      <div className="flex justify-center items-center w-full h-full overflow-hidden">
+        <HeartBeat gameId={gameId} name={name}></HeartBeat>
         <PlayerControls onMove={handleMove} />
+        {isRunning && (
+          <div
+            className=" absolute top-3 right-[50%] p-4 rounded-md bg-blue-600 cursor-pointer"
+            onClick={toggleMinimapPopup}
+          >
+            <Minimap
+              walls={walls}
+              tasks={tasks}
+              playerPosition={{
+                x: players?.get(name)?.x,
+                y: players?.get(name)?.y,
+              }}
+              width={150}
+              height={90}
+              scaleFactor={2}
+            />
+          </div>
+        )}
+        <MinimapPopup isOpen={minimapPopupOpen} onClose={toggleMinimapPopup}>
+          <div style={{ width: "900px", height: "600px" }}>
+            <Minimap
+              walls={walls}
+              tasks={tasks}
+              playerPosition={players.get(name) || { x: 0, y: 0 }}
+              width={150 * 6}
+              height={90 * 6}
+              scaleFactor={12}
+            />
+          </div>
+        </MinimapPopup>
         <GameCanvas
           players={players}
+          imposters={imposters}
+          role={role}
           height={mapHeight}
           width={mapWidth}
           walls={walls}
@@ -600,6 +790,11 @@ const GameComponent: React.FC = () => {
           <h2 className="font-mono font-bold text-xl mb-6">{suspectRoll}</h2>
           <h2 className="font-mono font-bold text-xl mb-6">{suspect}</h2>
         </Popup>
+        <Popup isOpen={wasRemoved} onClose={closeRemoved}>
+          <h2 className="font-mono font-bold text-xl mb-6">
+            You were not acctive. you were removed from the game {gameId}
+          </h2>
+        </Popup>
         <Popup
           isOpen={roleWon != null}
           onClose={() => {
@@ -618,11 +813,23 @@ const GameComponent: React.FC = () => {
         <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
           {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
-        <div className="fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+        <div className="fixed top-5 right-5 flex flex-col items-end space-y-2 z-50">
+          <div
+            className={`rounded-md p-4 ${
+              role === 1 ? "bg-red-600" : "bg-blue-600"
+            }`}
+          >
+            <p className="text-white">
+              {"You are: "}
+              <a className="font-bold">
+                {role === 1 ? "Imposter" : "Crewmate"}
+              </a>
+            </p>
+          </div>
+        </div>
+        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-col items-end space-y-2">
           {isRunning ? (
             <>
-              {"Role: "}
-              {role == 1 ? "Imposter" : "Crewmate"}
               {isPlayerAlive && (
                 <InGameButton
                   onClick={startMeeting}
@@ -650,7 +857,7 @@ const GameComponent: React.FC = () => {
                 active={true}
               />
               <InGameButton onClick={toggleChat} label="Chat" active={true} />
-              <h1>GameID: {gameId}</h1>
+              <h1 className="text-xl text-white">GameID: {gameId}</h1>
               <ButtonComponent onClick={togglePopup} label="Choose color" />
               <Popup isOpen={inChat} onClose={toggleChat}>
                 <Chat inLobby={true} name={name} gameId={gameId}></Chat>
@@ -665,6 +872,9 @@ const GameComponent: React.FC = () => {
           )}
         </div>
         {!isRunning && <Settings gameId={gameId} name={name} />}
+      </div>
+      <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 left-5 flex flex-col items-end space-y-2">
+        <ButtonComponent onClick={leaveGame} label="Leave Game" />
       </div>
     </div>
   );
