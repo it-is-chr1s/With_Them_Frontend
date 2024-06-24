@@ -75,6 +75,7 @@ const GameComponent: React.FC = () => {
   const [currentTask, setCurrentTask] = useState(null);
   const [mapHeight, setMapHeight] = useState(0);
   const [mapWidth, setMapWidth] = useState(0);
+  const [imposters, setImposters] = useState([]);
   const [role, setRole] = useState(0);
   const [startGame, setStartGame] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -272,11 +273,12 @@ const GameComponent: React.FC = () => {
         stompClientMap.current?.subscribe(
           "/topic/" + gameId + "/" + name + "/onStart",
           (message) => {
-            const roleTemp = JSON.parse(message.body);
+            const impostersTemp = JSON.parse(message.body);
 
-            console.log("Role updates received", roleTemp);
+            console.log("Role updates received", impostersTemp);
             setIsRunning(true);
-            setRole(roleTemp);
+            setImposters(impostersTemp);
+            setRole(impostersTemp.includes(name) ? 1 : 0);
             setStartGame(true);
           }
         );
@@ -294,6 +296,7 @@ const GameComponent: React.FC = () => {
             console.log("Game Won by ", message.body);
             setIsRunning(false);
             setRole(0);
+            setImposters([]);
             setRoleWon(message.body);
           }
         );
@@ -678,6 +681,8 @@ const GameComponent: React.FC = () => {
         </MinimapPopup>
         <GameCanvas
           players={players}
+          imposters={imposters}
+          role={role}
           height={mapHeight}
           width={mapWidth}
           walls={walls}

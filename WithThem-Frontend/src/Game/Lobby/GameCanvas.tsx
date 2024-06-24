@@ -50,6 +50,8 @@ interface TaskPosition {
 
 interface GameCanvasProps {
   players: Map<string, PlayerPositionAndColor>;
+  imposters: string[];
+  role: number;
   walls: Position[];
   tasks: TaskPosition[];
   meeting: Position;
@@ -71,6 +73,8 @@ const idColors = {} as IdColors;
 
 const GameCanvas: React.FC<GameCanvasProps> = ({
   players,
+  imposters,
+  role,
   walls,
   tasks,
   meeting,
@@ -295,6 +299,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
             position.x * cellSize,
             (position.y - 0.5) * cellSize
           );
+          if(role == 1 && imposters.includes(playerId)){
+            context.fillText(
+              "Imposter",
+              position.x * cellSize,
+              (position.y + 0.65) * cellSize
+            )
+          }
         }
 
         if (!position.isAlive) {
