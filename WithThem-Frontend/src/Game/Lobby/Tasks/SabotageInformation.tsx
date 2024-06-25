@@ -9,7 +9,7 @@ const SabotageInformation: React.FC<Props> = ({ sabotageName, remainingTime }) =
   return (
     <div className="p-4 bg-blue-500 rounded-md">
       <h1 className="text-xl font-bold text-center text-white">
-        Sabotage Information
+        Active Sabotage
       </h1>
       <p className="text-white">
         {"Sabotage: "}

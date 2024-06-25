@@ -27,6 +27,8 @@ import sprite24 from "/src/assets/sprites/characters/pink/frame-2.png";
 import sprite25 from "/src/assets/sprites/characters/gray/frame-1.png";
 import sprite26 from "/src/assets/sprites/characters/gray/frame-2.png";
 
+import {SabotageData} from "./GameComponent";
+
 interface PlayerPositionAndColor {
   x: number;
   y: number;
@@ -56,6 +58,7 @@ interface GameCanvasProps {
   tasks: TaskPosition[];
   meeting: Position;
   stateOfTasks: any;
+  sabotageData: SabotageData;
   height: number;
   width: number;
   name: string;
@@ -79,6 +82,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
   tasks,
   meeting,
   stateOfTasks,
+  sabotageData,
   name,
   height,
   width,
@@ -243,6 +247,63 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           cellSize,
           cellSize / 5
         );
+
+        if(task_index == sabotageData.currentSabotageID){
+          context.fillStyle = "black";
+          context.fillRect(
+            task.x * cellSize,
+            task.y * cellSize,
+            cellSize / 5,
+            cellSize / 5
+          )
+          context.fillRect(
+            task.x * cellSize + (cellSize * 4) / 5,
+            task.y * cellSize,
+            cellSize / 5,
+            cellSize / 5
+          )
+          context.fillRect(
+            task.x * cellSize,
+            task.y * cellSize + (cellSize * 4) / 5,
+            cellSize / 5,
+            cellSize / 5
+          )
+          context.fillRect(
+            task.x * cellSize + (cellSize * 4) / 5,
+            task.y * cellSize + (cellSize * 4) / 5,
+            cellSize / 5,
+            cellSize / 5
+          )
+          if(sabotageData.status == "available"){
+            context.fillStyle = "red";
+          } else if(sabotageData.status == "active"){
+            context.fillStyle = "rgb(255, 109, 31)";
+          }
+          context.fillRect(
+            task.x * cellSize + cellSize / 60,
+            task.y * cellSize + cellSize / 60,
+            cellSize / 6,
+            cellSize / 6
+          )
+          context.fillRect(
+            task.x * cellSize + (cellSize * 49) / 60,
+            task.y * cellSize + cellSize / 60,
+            cellSize / 6,
+            cellSize / 6
+          )
+          context.fillRect(
+            task.x * cellSize + (cellSize / 60),
+            task.y * cellSize + (cellSize * 49) / 60,
+            cellSize / 6,
+            cellSize / 6
+          )
+          context.fillRect(
+            task.x * cellSize + (cellSize * 49) / 60,
+            task.y * cellSize + (cellSize * 49) / 60,
+            cellSize / 6,
+            cellSize / 6
+          )
+        }
 
         context.fillStyle = "black";
         context.textAlign = "center";

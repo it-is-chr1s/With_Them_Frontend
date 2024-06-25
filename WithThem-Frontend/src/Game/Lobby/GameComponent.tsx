@@ -18,15 +18,16 @@ import Minimap from "../minimap/Minimap";
 import MinimapPopup from "../../components/MinimapPopup";
 import SabotageInformation from "./Tasks/SabotageInformation";
 
-interface Sabotage{
+export interface Sabotage{
   [key: number]: string;
 }
 
-interface SabotageData{
+export interface SabotageData{
   availableSabotages: Sabotage[];
   cooldown: number;
   currentSabotageID: number;
   timer: number;
+  status: string;
 }
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -781,6 +782,7 @@ const GameComponent: React.FC = () => {
             y: meetingPosition?.y ?? 0,
           }}
           stateOfTasks={stateOfTasks}
+          sabotageData={sabotageData}
           name={name}
         />
         <Popup
