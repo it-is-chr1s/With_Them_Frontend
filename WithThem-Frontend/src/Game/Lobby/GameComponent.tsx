@@ -493,7 +493,8 @@ const GameComponent: React.FC = () => {
           task_index = i;
         }
       }
-      if (task != null && task_index != -1) {
+      let sabotageID = task?.id;
+      if (task != null && task_index != -1 && sabotageData.currentSabotageID == -1) {
         if (stateOfTasks[task_index].state === "available") {
           if (currentTask == null && task.taskType != "File Upload") {
             setUseEnabled(onTaskField);
@@ -510,6 +511,12 @@ const GameComponent: React.FC = () => {
           }
         } else if (stateOfTasks[task_index].state === "active") {
           setUseEnabled(false);
+        }
+      }else if(task != null && task.id == sabotageData.currentSabotageID){
+        if(sabotageData.status == "active"){
+          setUseEnabled(false);
+        }else if(sabotageData.status == "available"){
+          setUseEnabled(onTaskField);
         }
       } else {
         setUseEnabled(false);
