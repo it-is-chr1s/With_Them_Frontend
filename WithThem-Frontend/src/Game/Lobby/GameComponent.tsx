@@ -197,6 +197,17 @@ const GameComponent: React.FC = () => {
             console.log(JSON.parse(message.body));
           }
         );
+
+        stompClientSabotages.current?.subscribe(
+          "/topic/sabotages/" + GameId + "/currentSabotage/" + name,
+          (message) => {
+            if (message.body === "") {
+              setCurrentTask(null);
+            } else {
+              setCurrentTask(JSON.parse(message.body));
+            }
+          }
+        );
       },
       onDisconnect: () => {},
       onWebSocketError: (error: Event) => {
@@ -565,7 +576,7 @@ const GameComponent: React.FC = () => {
         obj.x === Math.floor(players.get(name).x) &&
         obj.y === Math.floor(players.get(name).y)
     );
-    if (currentTask?.task === "FileDownloadUpload") {
+    if (sabotageData.currentSabotageID == -1 && currentTask?.task === "FileDownloadUpload") {
       stompClientTasks.current?.publish({
         destination: "/app/tasks/playerAction",
         body: JSON.stringify({
@@ -576,7 +587,7 @@ const GameComponent: React.FC = () => {
           task: "FileDownloadUpload",
         }),
       });
-    } else {
+    } else if(sabotageData.currentSabotageID == -1){
       stompClientTasks.current?.publish({
         destination: "/app/tasks/startTask",
         body: JSON.stringify({
@@ -586,19 +597,39 @@ const GameComponent: React.FC = () => {
           player: name,
         }),
       });
+    }else{
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/startFixing",
+        body: JSON.stringify({
+          lobby: GameId,
+          id: task.id,
+          player: name
+        })
+      })
     }
   };
 
   const closeTask = () => {
-    stompClientTasks.current?.publish({
-      destination: "/app/tasks/closeTask",
-      body: JSON.stringify({
-        gameId: gameId,
-        lobby: GameId,
-        id: currentTask?.id,
-        player: name,
-      }),
-    });
+    if(sabotageData.currentSabotageID == -1){
+      stompClientTasks.current?.publish({
+        destination: "/app/tasks/closeTask",
+        body: JSON.stringify({
+          gameId: gameId,
+          lobby: GameId,
+          id: currentTask?.id,
+          player: name,
+        }),
+      });
+    }else{
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/closeSabotage",
+        body: JSON.stringify({
+          lobby: GameId,
+          id: currentTask?.id,
+          player: name,
+        }),
+      });
+    }
   };
 
   const closeSuspect = () => {
