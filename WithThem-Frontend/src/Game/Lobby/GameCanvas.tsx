@@ -248,7 +248,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({
           cellSize / 5
         );
 
-        if(task_index == sabotageData.currentSabotageID){
+        if(task_index != -1 && task_index == sabotageData.currentSabotageID){
           context.fillStyle = "black";
           context.fillRect(
             task.x * cellSize,
