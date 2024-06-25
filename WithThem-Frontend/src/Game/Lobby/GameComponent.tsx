@@ -16,6 +16,7 @@ import Chat from "./EmergencyMeeting/Chat";
 import HeartBeat from "./HeartBeat";
 import Minimap from "../minimap/Minimap";
 import MinimapPopup from "../../components/MinimapPopup";
+import SabotageInformation from "./Tasks/SabotageInformation";
 
 interface Sabotage{
   [key: number]: string;
@@ -674,6 +675,16 @@ const GameComponent: React.FC = () => {
     );
   }
 
+  const getSabotageName = () => {
+    for(const sabotage of sabotageData.availableSabotages){
+      if(sabotage[sabotageData.currentSabotageID]){
+        return sabotage[sabotageData.currentSabotageID];
+      }
+    }
+
+    return '';
+  }
+
   useEffect(() => {
     if (!killCooldown) {
       updateCanKillStatus();
@@ -864,7 +875,7 @@ const GameComponent: React.FC = () => {
             {role == 1 ? "Imposter" : "Crewmate"}
           </h2>
         </Popup>
-        <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
+        <div className="fixed top-5 left-5 flex flex-col items-end space-y-2 z-50">
           {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
         <div className="fixed top-5 right-5 flex flex-col items-end space-y-2 z-50">
@@ -880,6 +891,11 @@ const GameComponent: React.FC = () => {
               </a>
             </p>
           </div>
+        </div>
+        <div className="fixed top-20 right-5 flex flex-col items-end space-y-2 z-50">
+          {isRunning && sabotageData.currentSabotageID != -1 &&
+            <SabotageInformation sabotageName={getSabotageName()} remainingTime={sabotageData.timer} />
+          }
         </div>
         <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-row items-end space-y-2">
           {isRunning ? (
