@@ -343,7 +343,27 @@ const GameComponent: React.FC = () => {
   useEffect(() => {
     handleMove("NONE");
   }, []);
+  const fetchExistingPlayers = async (gameId: string) => {
+    try {
+      const response = await fetch(`http://${apiUrl}:4000/existingPlayers/${gameId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+    } catch (error) {
+      console.error('Error fetching existing players:', error);
+    }
+  };
+  useEffect(()=>{    
+    fetchExistingPlayers(gameId);
+    
+  })
   useEffect(() => {
     const fetchGameState = async () => {
       try {
