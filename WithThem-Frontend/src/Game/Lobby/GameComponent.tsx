@@ -401,8 +401,26 @@ const GameComponent: React.FC = () => {
   }, [name]);
 
   useEffect(() => {
+    fetchExistingPlayers(gameId);
     handleMove("NONE");
   }, []);
+  const fetchExistingPlayers = async (gameId: string) => {
+    try {
+      const response = await fetch(`http://${apiUrl}:4000/existingPlayers/${gameId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+    } catch (error) {
+      console.error('Error fetching existing players:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchGameState = async () => {
@@ -557,7 +575,7 @@ const GameComponent: React.FC = () => {
   };
 
   const endMeeting = () => {
-    if (suspect === null /*|| VotingEnded*/) {
+    if (suspect === null || !isRunning /*|| VotingEnded*/) {
       setSuspect("");
       setSuspectRoll("");
       if (connected && stompClientMeeting.current && startEmergencyMeeting) {
