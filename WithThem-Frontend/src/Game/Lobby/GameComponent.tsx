@@ -16,12 +16,26 @@ import Chat from "./EmergencyMeeting/Chat";
 import HeartBeat from "./HeartBeat";
 import Minimap from "../minimap/Minimap";
 import MinimapPopup from "../../components/MinimapPopup";
+import SabotageInformation from "./Tasks/SabotageInformation";
+
+export interface Sabotage{
+  [key: number]: string;
+}
+
+export interface SabotageData{
+  availableSabotages: Sabotage[];
+  cooldown: number;
+  currentSabotageID: number;
+  timer: number;
+  status: string;
+}
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const GameComponent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inChat, setInChat] = useState(false);
+  const [sabotageListIsOpen, setSabotageListIsOpen] = useState(false);
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
@@ -29,6 +43,10 @@ const GameComponent: React.FC = () => {
   const toggleChat = () => {
     setInChat(!inChat);
   };
+  const toggleSabotageList = () => {
+    setSabotageListIsOpen(!sabotageListIsOpen);
+  };
+
   const navigate = useNavigate();
   const leaveGame = () => {
     navigate("/");
@@ -46,6 +64,7 @@ const GameComponent: React.FC = () => {
   const [name] = useState(username);
   const stompClientMap = useRef<Client | null>(null);
   const stompClientTasks = useRef<Client | null>(null);
+  const stompClientSabotages = useRef<Client | null>(null);
   const stompClientMeeting = useRef<Client | null>(null);
   const [players, setPlayers] = useState<
     Map<
@@ -86,6 +105,8 @@ const GameComponent: React.FC = () => {
   const [lastKillTime, setLastKillTime] = useState(null);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [wasRemoved, setWasRemoved] = useState(false);
+
+  const [sabotageData, setSabotageData] = useState<SabotageData>({availableSabotages: [], cooldown: 0, currentSabotageID: -1, timer: 0});
 
   useEffect(() => {
     stompClientMeeting.current = new Client({
@@ -163,6 +184,42 @@ const GameComponent: React.FC = () => {
     });
 
     stompClientTasks.current.activate();
+
+    stompClientSabotages.current = new Client({
+      brokerURL: `ws://${apiUrl}:4004/ws`,
+      onConnect: () => {
+        console.log("Connected to sabotage websocket");
+
+        stompClientSabotages.current?.subscribe(
+          "/topic/sabotages/" + GameId + "/information",
+          (message) => {
+            setSabotageData(JSON.parse(message.body));
+            console.log(JSON.parse(message.body));
+          }
+        );
+
+        stompClientSabotages.current?.subscribe(
+          "/topic/sabotages/" + GameId + "/currentSabotage/" + name,
+          (message) => {
+            if (message.body === "") {
+              setCurrentTask(null);
+            } else {
+              setCurrentTask(JSON.parse(message.body));
+            }
+          }
+        );
+      },
+      onDisconnect: () => {},
+      onWebSocketError: (error: Event) => {
+        console.error("Error with websocket", error);
+      },
+      onStompError: (frame: any) => {
+        console.error("Broker reported error: " + frame.headers["message"]);
+        console.error("Additional details: " + frame.body);
+      }
+    });
+
+    stompClientSabotages.current.activate();
 
     stompClientMap.current = new Client({
       brokerURL: `ws://${apiUrl}:4000/ws`,
@@ -334,6 +391,9 @@ const GameComponent: React.FC = () => {
       if (stompClientTasks.current) {
         stompClientTasks.current.deactivate();
       }
+      if(stompClientSabotages.current){
+        stompClientSabotages.current.deactivate();
+      }
       if (stompClientMeeting.current) {
         stompClientMeeting.current.deactivate();
       }
@@ -426,6 +486,19 @@ const GameComponent: React.FC = () => {
     }
   };
 
+  	const callSabotage = (sabotageId: number) => {
+      const data = {
+        gameId: gameId,
+        sabotageId: sabotageId
+      }
+
+      toggleSabotageList();
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/startSabotage",
+        body: JSON.stringify(data)
+      });
+	}
+
   const handleColorSelect = (color: string) => {
     if (connected && stompClientMap.current) {
       stompClientMap.current.publish({
@@ -449,7 +522,8 @@ const GameComponent: React.FC = () => {
           task_index = i;
         }
       }
-      if (task != null && task_index != -1) {
+      let sabotageID = task?.id;
+      if (task != null && task_index != -1 && sabotageData.currentSabotageID == -1) {
         if (stateOfTasks[task_index].state === "available") {
           if (currentTask == null && task.taskType != "File Upload") {
             setUseEnabled(onTaskField);
@@ -466,6 +540,12 @@ const GameComponent: React.FC = () => {
           }
         } else if (stateOfTasks[task_index].state === "active") {
           setUseEnabled(false);
+        }
+      }else if(task != null && task.id == sabotageData.currentSabotageID){
+        if(sabotageData.status == "active"){
+          setUseEnabled(false);
+        }else if(sabotageData.status == "available"){
+          setUseEnabled(onTaskField);
         }
       } else {
         setUseEnabled(false);
@@ -514,7 +594,7 @@ const GameComponent: React.FC = () => {
         obj.x === Math.floor(players.get(name).x) &&
         obj.y === Math.floor(players.get(name).y)
     );
-    if (currentTask?.task === "FileDownloadUpload") {
+    if (sabotageData.currentSabotageID == -1 && currentTask?.task === "FileDownloadUpload") {
       stompClientTasks.current?.publish({
         destination: "/app/tasks/playerAction",
         body: JSON.stringify({
@@ -525,7 +605,7 @@ const GameComponent: React.FC = () => {
           task: "FileDownloadUpload",
         }),
       });
-    } else {
+    } else if(sabotageData.currentSabotageID == -1){
       stompClientTasks.current?.publish({
         destination: "/app/tasks/startTask",
         body: JSON.stringify({
@@ -535,19 +615,39 @@ const GameComponent: React.FC = () => {
           player: name,
         }),
       });
+    }else{
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/startFixing",
+        body: JSON.stringify({
+          lobby: GameId,
+          id: task.id,
+          player: name
+        })
+      })
     }
   };
 
   const closeTask = () => {
-    stompClientTasks.current?.publish({
-      destination: "/app/tasks/closeTask",
-      body: JSON.stringify({
-        gameId: gameId,
-        lobby: GameId,
-        id: currentTask?.id,
-        player: name,
-      }),
-    });
+    if(sabotageData.currentSabotageID == -1){
+      stompClientTasks.current?.publish({
+        destination: "/app/tasks/closeTask",
+        body: JSON.stringify({
+          gameId: gameId,
+          lobby: GameId,
+          id: currentTask?.id,
+          player: name,
+        }),
+      });
+    }else{
+      stompClientSabotages.current?.publish({
+        destination: "/app/sabotages/closeSabotage",
+        body: JSON.stringify({
+          lobby: GameId,
+          id: currentTask?.id,
+          player: name,
+        }),
+      });
+    }
   };
 
   const closeSuspect = () => {
@@ -585,6 +685,7 @@ const GameComponent: React.FC = () => {
       }
     }
   }, [onMeetingField]);
+
   const isInKillRange = (killerPos, targetPos) => {
     if (killerPos == targetPos) return false;
     const distance = Math.sqrt(
@@ -620,6 +721,27 @@ const GameComponent: React.FC = () => {
 
     setCanKill(canKill);
   };
+
+  const copyGameId = () => {
+    navigator.clipboard.writeText(gameId).then(
+      () => {
+        console.log('gameId copied to clipboard');
+      },
+      (err) => {
+        console.error('Failed to copy text: ', err);
+      }
+    );
+  }
+
+  const getSabotageName = () => {
+    for(const sabotage of sabotageData.availableSabotages){
+      if(sabotage[sabotageData.currentSabotageID]){
+        return sabotage[sabotageData.currentSabotageID];
+      }
+    }
+
+    return '';
+  }
 
   useEffect(() => {
     if (!killCooldown) {
@@ -717,6 +839,7 @@ const GameComponent: React.FC = () => {
             y: meetingPosition?.y ?? 0,
           }}
           stateOfTasks={stateOfTasks}
+          sabotageData={sabotageData}
           name={name}
         />
         <Popup
@@ -729,7 +852,7 @@ const GameComponent: React.FC = () => {
           <ConnectingWires
             plugs={currentTask?.plugs}
             wires={currentTask?.wires}
-            stompClient={stompClientTasks}
+            stompClient={(sabotageData.currentSabotageID == -1) ? stompClientTasks : stompClientSabotages}
             lobbyId={GameId}
             name={name}
           />
@@ -763,6 +886,26 @@ const GameComponent: React.FC = () => {
           name={name}
         />
 
+        <Popup isOpen={sabotageListIsOpen} onClose={toggleSabotageList}>
+          <h2 className="font-mono font-bold text-xl mb-6">Choose A Sabotage</h2>
+        <div className="flex flex-col items-center space-y-4">
+            {sabotageData.availableSabotages.map((sabotage, index) => (
+              <React.Fragment key={index}>
+                {Object.entries(sabotage).map(([key, value]) => (
+                  <div key={key} className="flex flex-row items-center space-x-4">
+                    <button
+                      className="bg-blue-600 text-white p-2 rounded-md"
+                      onClick={() => callSabotage(Number(key))}
+                    >
+                      {value}
+                    </button>
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+        </Popup>
+
         <Popup
           isOpen={suspect !== "" && suspect !== null}
           onClose={closeSuspect}
@@ -773,7 +916,7 @@ const GameComponent: React.FC = () => {
         </Popup>
         <Popup isOpen={wasRemoved} onClose={closeRemoved}>
           <h2 className="font-mono font-bold text-xl mb-6">
-            You were not acctive. you were removed from the game {gameId}
+            You were not active. you were removed from the game {gameId}
           </h2>
         </Popup>
         <Popup
@@ -791,7 +934,7 @@ const GameComponent: React.FC = () => {
             {role == 1 ? "Imposter" : "Crewmate"}
           </h2>
         </Popup>
-        <div className="fixed top-5 left-1 flex flex-col items-end space-y-2 z-50">
+        <div className="fixed top-5 left-5 flex flex-col items-end space-y-2 z-50">
           {isRunning && <TasksTodoList stateOfTasks={stateOfTasks} />}
         </div>
         <div className="fixed top-5 right-5 flex flex-col items-end space-y-2 z-50">
@@ -808,39 +951,65 @@ const GameComponent: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-col items-end space-y-2">
+        <div className="fixed top-20 right-5 flex flex-col items-end space-y-2 z-50">
+          {isRunning && sabotageData.currentSabotageID != -1 &&
+            <SabotageInformation sabotageName={getSabotageName()} remainingTime={sabotageData.timer} />
+          }
+        </div>
+        <div className="p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-row items-end space-y-2">
           {isRunning ? (
             <>
-              {isPlayerAlive && (
-                <InGameButton
-                  onClick={startMeeting}
-                  label="Meeting"
-                  active={onMeetingField || onCorpes}
-                />
-              )}
-              <InGameButton onClick={use} label="Use" active={useEnabled} />
               {role == 1 && (
-                <InGameButton
-                  onClick={handleKill}
-                  label={`Kill ${
-                    cooldownSeconds > 0 && killCooldown
-                      ? `(${cooldownSeconds}s)`
-                      : ""
-                  }`}
-                  active={canKill && !killCooldown}
-                />
+				        <div className="flex flex-col mr-2">
+                  <div className="mb-2">
+                    <InGameButton
+                      onClick={handleKill}
+                      label={`Kill ${
+                        cooldownSeconds > 0 && killCooldown
+                          ? `(${cooldownSeconds}s)`
+                          : ""
+                      }`}
+                      active={canKill && !killCooldown}
+                    />
+                  </div>
+                  <InGameButton
+                    onClick={toggleSabotageList}
+                    label={`Sabotage${
+                      (sabotageData.cooldown != 90) ? ` (~${sabotageData.cooldown}s)` : ''
+                    }`}
+                    active={sabotageData.cooldown == 90}
+                  />
+				        </div>
               )}
+              <div className="flex flex-col">
+                <div className="mb-2">
+                  <InGameButton onClick={use} label="Use" active={useEnabled} />
+                </div>
+                {isPlayerAlive && (
+                  <InGameButton
+                    onClick={startMeeting}
+                    label="Meeting"
+                    active={onMeetingField || onCorpes}
+                  />
+                )}
+              </div>
             </>
           ) : (
-            <>
-              <InGameButton
-                onClick={startGameFunction}
-                label="start Game"
-                active={true}
-              />
-              <InGameButton onClick={toggleChat} label="Chat" active={true} />
-              <h1 className="text-xl text-white">GameID: {gameId}</h1>
-              <ButtonComponent onClick={togglePopup} label="Choose color" />
+            <div className="flex flex-col">
+              <div className="flex flex-row mb-2">
+                <div className="mr-2">
+                  <InGameButton
+                    onClick={startGameFunction}
+                    label="Start Game"
+                    active={true}
+                  />
+                </div>
+                <div className="mr-2">
+                  <InGameButton onClick={toggleChat} label="Chat" active={true} />
+                </div>
+                <InGameButton onClick={togglePopup} label="Choose Color" active={true} />
+              </div>
+              <ButtonComponent onClick={copyGameId} label={"Copy GameID: " + gameId} />
               <Popup isOpen={inChat} onClose={toggleChat}>
                 <Chat inLobby={true} name={name} gameId={gameId}></Chat>
               </Popup>
@@ -850,7 +1019,7 @@ const GameComponent: React.FC = () => {
                 onClose={togglePopup}
                 onColorSelect={handleColorSelect}
               />
-            </>
+            </div>
           )}
         </div>
         {!isRunning && <Settings gameId={gameId} name={name} />}
