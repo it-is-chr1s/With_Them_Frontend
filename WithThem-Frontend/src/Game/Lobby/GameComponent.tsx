@@ -477,7 +477,7 @@ const GameComponent: React.FC = () => {
   };
 
   const endMeeting = () => {
-    if (suspect === null /*|| VotingEnded*/) {
+    if (suspect === null || !isRunning /*|| VotingEnded*/) {
       setSuspect("");
       setSuspectRoll("");
       if (connected && stompClientMeeting.current && startEmergencyMeeting) {
