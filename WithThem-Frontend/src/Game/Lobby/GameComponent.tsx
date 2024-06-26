@@ -723,14 +723,35 @@ const GameComponent: React.FC = () => {
   };
 
   const copyGameId = () => {
-    navigator.clipboard.writeText(gameId).then(
-      () => {
-        console.log('gameId copied to clipboard');
-      },
-      (err) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(gameId).then(
+        () => {
+          console.log('gameId copied to clipboard');
+        },
+        (err) => {
+          console.error('Failed to copy text: ', err);
+        }
+      );
+    } else {
+      // Fallback for browsers that don't support navigator.clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = gameId;
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0'
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        const successful = document.execCommand('copy');
+        const msg = successful ? 'gameId copied to clipboard' : 'Failed to copy text';
+        console.log(msg);
+      } catch (err) {
         console.error('Failed to copy text: ', err);
       }
-    );
+      document.body.removeChild(textArea);
+    }
   }
 
   const getSabotageName = () => {
