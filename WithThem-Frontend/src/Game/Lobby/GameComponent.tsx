@@ -341,6 +341,7 @@ const GameComponent: React.FC = () => {
   }, [name]);
 
   useEffect(() => {
+    fetchExistingPlayers(gameId);
     handleMove("NONE");
   }, []);
   const fetchExistingPlayers = async (gameId: string) => {
@@ -360,10 +361,7 @@ const GameComponent: React.FC = () => {
       console.error('Error fetching existing players:', error);
     }
   };
-  useEffect(()=>{    
-    fetchExistingPlayers(gameId);
-    
-  })
+
   useEffect(() => {
     const fetchGameState = async () => {
       try {
