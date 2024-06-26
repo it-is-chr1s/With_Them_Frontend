@@ -20,7 +20,7 @@ const SabotageInformation: React.FC<Props> = ({ sabotageName, remainingTime }) =
       <p className="text-white">
         {"Remaining Time: "}
         <a className="font-bold">
-          {remainingTime + "s"}
+          {"~" + remainingTime + "s"}
           </a>
       </p>
     </div>

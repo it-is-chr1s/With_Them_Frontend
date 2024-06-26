@@ -667,6 +667,7 @@ const GameComponent: React.FC = () => {
       }
     }
   }, [onMeetingField]);
+
   const isInKillRange = (killerPos, targetPos) => {
     if (killerPos == targetPos) return false;
     const distance = Math.sqrt(
@@ -833,7 +834,7 @@ const GameComponent: React.FC = () => {
           <ConnectingWires
             plugs={currentTask?.plugs}
             wires={currentTask?.wires}
-            stompClient={stompClientTasks}
+            stompClient={(sabotageData.currentSabotageID == -1) ? stompClientTasks : stompClientSabotages}
             lobbyId={GameId}
             name={name}
           />
@@ -956,9 +957,9 @@ const GameComponent: React.FC = () => {
                   <InGameButton
                     onClick={toggleSabotageList}
                     label={`Sabotage${
-                      (sabotageData.cooldown > 0) ? ` (${sabotageData.cooldown}s)` : ''
+                      (sabotageData.cooldown != 90) ? ` (~${sabotageData.cooldown}s)` : ''
                     }`}
-                    active={true}
+                    active={sabotageData.cooldown == 90}
                   />
 				        </div>
               )}

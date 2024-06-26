@@ -103,22 +103,23 @@ export default function Settings({ gameId, name }: SettingsProps) {
 			}
 		});
 	}
+	//p-4 rounded-md bg-blue-600 fixed bottom-5 right-5 flex flex-row items-end space-y-2
 	return (
-		<div className="absolute top-10 left-20">
+		<div className="absolute top-5 left-5 bg-blue-600 p-4 rounded-md">
 			<div key={"maxPlayers"}>
-				<p className="text-white">Max Players</p>
+				<p className="text-white mb-1">Max Players</p>
 				<input
-					className="bg-black text-white"
+					className="rounded-md p-1 pl-2 bg-blue-400 text-white"
 					onChange={(e) => handleChange("maxPlayers", e)}
 					type="number"
 					value={settings?.maxPlayers ?? 3}
 				></input>
 			</div>
 
-			<div key={"imposters"}>
-				<p className="text-white">Imposters</p>
+			<div className="mt-2" key={"imposters"}>
+				<p className="text-white mb-1">Imposters</p>
 				<input
-					className="bg-black text-white"
+					className="rounded-md p-1 pl-2 bg-blue-400 text-white"
 					onChange={(e) => handleChange("imposters", e)}
 					type="number"
 					value={settings?.imposters ?? 1}
